@@ -1,0 +1,70 @@
+{
+  "adult": false,
+  "backdrop_path": "/backdrop1.jpg",
+  "genres": [
+    { "id": 18, "name": "Drama" },
+    { "id": 53, "name": "Suspense" }
+  ],
+  "id": 1234,
+  "original_language": "en",
+  "original_title": "The Quiet Hour",
+  "overview": "Una traductora descubre un mensaje oculto en un manuscrito antiguo.",
+  "poster_path": "/poster1.jpg",
+  "release_date": "2026-09-08",
+  "runtime": 118,
+  "title": "La hora silenciosa",
+  "vote_average": 7.4,
+  "vote_count": 212,
+  "external_ids": {
+    "imdb_id": "tt9876543",
+    "facebook_id": null,
+    "twitter_id": null
+  },
+  "videos": {
+    "results": [
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Official Trailer",
+        "key": "ENGLISHKEY1",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "published_at": "2026-07-01T10:00:00.000Z",
+        "id": "aaa"
+      },
+      {
+        "iso_639_1": "es",
+        "iso_3166_1": "ES",
+        "name": "Tráiler oficial en castellano",
+        "key": "SPANISHKEY1",
+        "site": "YouTube",
+        "size": 1080,
+        "type": "Trailer",
+        "official": true,
+        "published_at": "2026-07-05T10:00:00.000Z",
+        "id": "bbb"
+      }
+    ]
+  },
+  "watch/providers": {
+    "results": {
+      "ES": {
+        "link": "https://www.themoviedb.org/movie/1234/watch?locale=ES",
+        "flatrate": [
+          { "logo_path": "/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg", "provider_id": 8, "provider_name": "Netflix", "display_priority": 0 }
+        ],
+        "rent": [
+          { "logo_path": "/x.jpg", "provider_id": 3, "provider_name": "Google Play Movies", "display_priority": 5 }
+        ]
+      },
+      "US": {
+        "link": "https://www.themoviedb.org/movie/1234/watch?locale=US",
+        "flatrate": [
+          { "logo_path": "/y.jpg", "provider_id": 15, "provider_name": "Hulu", "display_priority": 1 }
+        ]
+      }
+    }
+  }
+}

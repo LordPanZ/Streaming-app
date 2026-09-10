@@ -1,0 +1,11 @@
+node_modules/
+dist/
+release/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+datos-agente/
+agent-output/

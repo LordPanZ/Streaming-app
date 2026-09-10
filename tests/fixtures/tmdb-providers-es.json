@@ -1,0 +1,16 @@
+{
+  "results": [
+    { "display_priority": 0, "logo_path": "/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg", "provider_name": "Netflix", "provider_id": 8 },
+    { "display_priority": 1, "logo_path": "/emthp39XA2YScoYL1p0sdbAH2WA.jpg", "provider_name": "Amazon Prime Video", "provider_id": 119 },
+    { "display_priority": 2, "logo_path": "/7rwgEs15tFwyR9NPQ5vpzxTj19Q.jpg", "provider_name": "Disney Plus", "provider_id": 337 },
+    { "display_priority": 3, "logo_path": "/6Q3ZYUNA9Hsgj6iWnVsw2gR5V6z.jpg", "provider_name": "Max", "provider_id": 1899 },
+    { "display_priority": 4, "logo_path": "/oJlHNyYqL8bYJHVYnKcE1qNwGpx.jpg", "provider_name": "Movistar Plus+", "provider_id": 149 },
+    { "display_priority": 5, "logo_path": "/2E03IAZsX4ZaUqM7tXlctEPMGWS.jpg", "provider_name": "Apple TV Plus", "provider_id": 350 },
+    { "display_priority": 6, "logo_path": "/9m8dNfhVMiEqM5uYbGZ9VDzQvSs.jpg", "provider_name": "SkyShowtime", "provider_id": 1773 },
+    { "display_priority": 7, "logo_path": "/1EAxRhCTM9ec9UrDo6oLilyRAmk.jpg", "provider_name": "Filmin", "provider_id": 63 },
+    { "display_priority": 8, "logo_path": "/8Gt1iClBlzTeQs8WQm8UrCoIxnQ.jpg", "provider_name": "Crunchyroll", "provider_id": 283 },
+    { "display_priority": 9, "logo_path": "/kMzOefLmyGdvQPUdnCJfeSTFPXH.jpg", "provider_name": "atresplayer", "provider_id": 62 },
+    { "display_priority": 10, "logo_path": "/6FDKQwVKm3ZaEUpYLzHDgcPZjbP.jpg", "provider_name": "Rakuten TV", "provider_id": 35 },
+    { "display_priority": 11, "logo_path": "/A6Bn9O6bxHOgO2gDrbEjWQNPMzT.jpg", "provider_name": "Pluto TV", "provider_id": 300 }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "backdrop_path": null,
+  "first_air_date": "2026-09-04",
+  "genres": [],
+  "id": 4321,
+  "name": "Cuentas pendientes",
+  "number_of_seasons": 2,
+  "original_language": "es",
+  "original_name": "Cuentas pendientes",
+  "overview": "Dos hermanos heredan una deuda que no sabían que existía.",
+  "poster_path": "/tvposter.jpg",
+  "vote_average": 8.1,
+  "vote_count": 340,
+  "external_ids": { "imdb_id": "tt1122334" },
+  "videos": { "results": [] },
+  "watch/providers": {
+    "results": {
+      "ES": {
+        "link": "https://www.themoviedb.org/tv/4321/watch?locale=ES",
+        "free": [
+          { "logo_path": "/kMzOefLmyGdvQPUdnCJfeSTFPXH.jpg", "provider_id": 62, "provider_name": "atresplayer", "display_priority": 9 }
+        ]
+      }
+    }
+  }
+}

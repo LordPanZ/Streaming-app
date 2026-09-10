@@ -1,0 +1,19 @@
+{
+  "Title": "The Quiet Hour",
+  "Year": "2026",
+  "Rated": "R",
+  "Released": "08 Sep 2026",
+  "Runtime": "118 min",
+  "Genre": "Drama, Thriller",
+  "imdbRating": "7.8",
+  "imdbVotes": "12,345",
+  "imdbID": "tt9876543",
+  "Metascore": "68",
+  "Type": "movie",
+  "Ratings": [
+    { "Source": "Internet Movie Database", "Value": "7.8/10" },
+    { "Source": "Rotten Tomatoes", "Value": "88%" },
+    { "Source": "Metacritic", "Value": "68/100" }
+  ],
+  "Response": "True"
+}
