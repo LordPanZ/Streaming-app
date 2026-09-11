@@ -1,0 +1,54 @@
+# Empaquetado multiplataforma (FR-041).
+# Los instaladores se generan desde el mismo código fuente en las tres
+# plataformas; macOS y Windows exigen construir en su propio sistema.
+
+appId: es.estrenos.app
+productName: Estrenos ES
+copyright: MIT
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/main/**
+  - dist/renderer/**
+  - package.json
+
+# El núcleo se empaqueta dentro de los bundles de esbuild, así que no hace falta
+# arrastrar node_modules: la aplicación no tiene dependencias nativas (ADR-005).
+asar: true
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: Estrenos-ES-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: Estrenos ES
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  category: public.app-category.entertainment
+  artifactName: Estrenos-ES-${version}-${arch}.${ext}
+  # Sin firma ni notarización en esta versión: es trabajo pendiente (T093) y
+  # exige una cuenta de desarrollador de Apple.
+  identity: null
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  category: AudioVideo
+  maintainer: LordPanZ
+  artifactName: Estrenos-ES-${version}.${ext}
+
+publish: null

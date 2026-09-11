@@ -13,6 +13,14 @@ import { registerIpcHandlers } from './ipc';
 import { SecretsManager } from './secrets';
 import { DATA_FOLDER, resolvePaths } from './paths';
 
+/**
+ * Ruta de datos fijada antes de nada: sin esto, Electron la deduce del nombre
+ * de la aplicación y cambia entre desarrollo y empaquetado. Tiene que ocurrir
+ * al cargar el módulo, antes de que nadie la lea, o Electron habrá creado ya su
+ * directorio por defecto.
+ */
+app.setPath('userData', join(app.getPath('appData'), 'estrenos-es'));
+
 const isDevelopment = !app.isPackaged;
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5273';
 

@@ -90,9 +90,15 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T086** Agente semanal desatendido en la nube *(FR-010)* → `.github/workflows/weekly-agent.yml`
 - [x] **T087** Documentación de usuario → `README.md`
 
-## Pendiente para v2 (fuera de alcance de esta iteración)
+## Pendiente (declarado, no dado por hecho)
+
+Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué
+requisitos quedan sin cobertura automática por su culpa.
 
 - [ ] **T090** Migración opcional del almacén a SQLite (ADR-005, vía de migración)
 - [ ] **T091** Notificación del sistema al terminar la ejecución semanal
 - [ ] **T092** Valoración por temporada en series
 - [ ] **T093** Firma y notarización de los instaladores de macOS y Windows
+- [ ] **T094** Banco de pruebas de componentes para la interfaz *(FR-032, FR-034, FR-042, NFR-007)*
+- [ ] **T095** Prueba de integración de `safeStorage` con Electron en ejecución *(FR-035)*
+- [ ] **T096** Verificación automática del empaquetado en las tres plataformas *(FR-041)*

@@ -1,0 +1,77 @@
+name: Agente semanal
+
+# FR-010 y ADR-011: el mismo agente que corre dentro de la aplicación, aquí sin
+# interfaz. Útil si prefieres que la recopilación ocurra aunque no abras la app.
+#
+# Requiere configurar los secretos del repositorio TMDB_API_KEY y OMDB_API_KEY.
+# Sin ellos el flujo termina sin hacer nada en lugar de fallar con ruido.
+
+on:
+  schedule:
+    # Lunes a las 07:00 UTC.
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: Días hacia atrás que se consultan
+        required: false
+        default: '7'
+
+jobs:
+  recopilar:
+    name: Recopilar estrenos
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Comprobar que hay clave configurada
+        id: claves
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          if [ -z "$TMDB_API_KEY" ]; then
+            echo "Sin TMDB_API_KEY configurada: no hay nada que recopilar."
+            echo "continuar=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "continuar=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Instalar dependencias
+        if: steps.claves.outputs.continuar == 'true'
+        run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
+      # El estado de la semana anterior permite reutilizar la caché y detectar
+      # qué títulos son realmente nuevos.
+      - name: Recuperar el estado anterior
+        if: steps.claves.outputs.continuar == 'true'
+        uses: actions/cache@v4
+        with:
+          path: agent-output
+          key: agente-estrenos-${{ github.run_id }}
+          restore-keys: agente-estrenos-
+
+      - name: Ejecutar el agente
+        if: steps.claves.outputs.continuar == 'true'
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+        run: |
+          npm run agent -- \
+            --data-dir ./agent-output \
+            --lookback-days "${{ inputs.lookback_days || '7' }}"
+
+      - name: Publicar el resultado
+        if: steps.claves.outputs.continuar == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: estrenos-${{ github.run_number }}
+          path: agent-output/*.json
+          retention-days: 90
