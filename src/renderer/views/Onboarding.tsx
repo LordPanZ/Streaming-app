@@ -9,8 +9,10 @@
 
 import { useState } from 'react';
 import { api, describeApiError, unwrap } from '../api';
+import { omdbKeyWarning, tmdbKeyWarning } from '../../core/domain/api-keys';
 
 const TMDB_API_URL = 'https://www.themoviedb.org/settings/api';
+const TMDB_SIGNUP_URL = 'https://www.themoviedb.org/signup';
 const OMDB_API_URL = 'https://www.omdbapi.com/apikey.aspx';
 
 interface OnboardingProps {
@@ -27,6 +29,10 @@ export function Onboarding({ onReady, onLoadSamples, onSkip }: OnboardingProps) 
   const [busySamples, setBusySamples] = useState(false);
 
   const open = (url: string) => void api.shell.openExternal(url);
+
+  // Aviso en vivo: mejor decirlo mientras pega que tras un 401 sin explicación.
+  const tmdbWarning = tmdbKeyWarning(key);
+  const omdbWarning = omdbKeyWarning(omdbKey);
 
   async function saveAndVerify(): Promise<void> {
     setState('saving');
@@ -66,12 +72,23 @@ export function Onboarding({ onReady, onLoadSamples, onSkip }: OnboardingProps) 
           <div className="step__body">
             <h3 className="step__title">Pide tu clave de TMDB</h3>
             <p className="step__text">
-              Es gratis y es de donde salen el catálogo, las plataformas, los géneros y los tráileres.
-              Entra, crea la cuenta si no la tienes y copia la clave de la API.
+              Es gratis y es de donde salen el catálogo, las plataformas, los géneros y los
+              tráileres. Necesitas una cuenta; la clave te la dan <strong>al momento</strong>, no
+              hay lista de espera ni aprobación.
             </p>
-            <button type="button" className="btn" onClick={() => open(TMDB_API_URL)}>
-              Abrir la página de TMDB ↗
-            </button>
+            <p className="step__text">
+              En esa página aparecen <strong>dos</strong> credenciales. Copia la de arriba,
+              «API&nbsp;Key&nbsp;(v3&nbsp;auth)»: son 32 caracteres sin puntos. La de abajo, el
+              «Read Access Token», es larga, empieza por <code>eyJ</code> y aquí no vale.
+            </p>
+            <div className="field__row">
+              <button type="button" className="btn" onClick={() => open(TMDB_API_URL)}>
+                Abrir la página de la clave ↗
+              </button>
+              <button type="button" className="btn btn--ghost btn--sm" onClick={() => open(TMDB_SIGNUP_URL)}>
+                No tengo cuenta ↗
+              </button>
+            </div>
           </div>
         </li>
 
@@ -83,11 +100,12 @@ export function Onboarding({ onReady, onLoadSamples, onSkip }: OnboardingProps) 
               <input
                 type="password"
                 value={key}
-                placeholder="Tu clave de TMDB"
+                placeholder="Tu clave de TMDB (32 caracteres)"
                 onChange={(event) => setKey(event.target.value)}
                 autoComplete="off"
                 aria-label="Clave de TMDB"
               />
+              {tmdbWarning && <p className="field__hint field__hint--warn">{tmdbWarning}</p>}
             </div>
 
             <details className="step__optional">
@@ -108,6 +126,7 @@ export function Onboarding({ onReady, onLoadSamples, onSkip }: OnboardingProps) 
                   autoComplete="off"
                   aria-label="Clave de OMDb"
                 />
+                {omdbWarning && <p className="field__hint field__hint--warn">{omdbWarning}</p>}
               </div>
             </details>
           </div>

@@ -116,6 +116,12 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T122** Primer arranque guiado de tres pasos *(FR-050)* → `renderer/views/Onboarding.tsx`
 - [x] **T123** Catálogo de ejemplo con marca visible y borrado automático *(FR-051)* → `core/domain/sample-catalog.ts`
 
+## Fase 12 — Que la clave no sea un muro (v1.1.1)
+
+- [x] **T130** Reconocer la clave v3 frente al testigo v4 *(FR-052)* → `core/domain/api-keys.ts`
+- [x] **T131** Aviso mientras se escribe, en primer arranque y en ajustes *(FR-052)*
+- [x] **T132** El 401 de TMDB explica la confusión en lugar de decir «no autorizado» *(FR-036, FR-052)*
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

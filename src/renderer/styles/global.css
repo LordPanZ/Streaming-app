@@ -1482,3 +1482,22 @@ input[type='number']:focus {
     justify-content: center;
   }
 }
+
+/* Aviso junto a un campo: algo que conviene leer antes de pulsar guardar. */
+.field__hint--warn {
+  color: #ffdb7a;
+}
+
+.field__hint code {
+  background: var(--bg-raised);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.step__text code {
+  background: var(--bg-raised);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}

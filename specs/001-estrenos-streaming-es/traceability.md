@@ -66,6 +66,7 @@ automático nada que no lo esté.
 | FR-048 Reparto y dirección | `core/providers/tmdb.ts` (`extractCast`, `extractDirectors`) | `contract/tmdb.test.ts` → bloque «reparto y dirección» (6 casos) | Automática |
 | FR-049 Enlace a la plataforma | `renderer/components/TitleDetail.tsx` | Lista manual §3, punto 5; solo se ofrece si la plataforma trae enlace | Manual |
 | FR-050 Primer arranque guiado | `renderer/views/Onboarding.tsx`, `renderer/App.tsx` | Lista manual §3, punto 1 | Manual |
+| FR-052 Reconocimiento de la clave | `core/domain/api-keys.ts`, `core/providers/tmdb.ts` | `unit/api-keys.test.ts` (9 casos) y `contract/tmdb.test.ts` → «explica la confusión entre la clave v3 y el testigo v4»; comprobado además en la aplicación en marcha | Automática |
 | FR-051 Datos de ejemplo | `core/domain/sample-catalog.ts`, `core/agent/stages/persist.ts` | `unit/sample-catalog.test.ts` (14 casos) y `unit/pipeline.test.ts` → «la primera recopilación real retira los títulos de ejemplo» | Automática |
 
 ## 2. Requisitos no funcionales

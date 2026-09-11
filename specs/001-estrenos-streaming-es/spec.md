@@ -331,6 +331,19 @@ TMDB, un campo para pegarla y un botón para lanzar la primera recopilación.
   entonces se verifica, se guarda y el botón de recopilar queda habilitado sin
   tener que navegar a ninguna otra pantalla.
 
+**FR-052 — Reconocimiento de la clave antes de usarla.**
+TMDB ofrece dos credenciales en la misma página y solo una sirve aquí. La
+aplicación reconoce cuál se ha pegado y, si es la que no vale, lo dice mientras
+se escribe y también al fallar la verificación, en lugar de devolver un error de
+autorización sin explicación.
+
+- *Criterio:* Dado el «Read Access Token» pegado en el campo de la clave, cuando
+  el usuario termina de pegarlo, entonces aparece un aviso que nombra las dos
+  credenciales y dice cuál copiar.
+- *Criterio:* Dada una clave de formato desconocido, cuando el usuario la
+  guarda, entonces se avisa pero se intenta igualmente: el aviso es una pista,
+  no una validación que impida probar.
+
 **FR-051 — Datos de ejemplo.**
 El usuario puede cargar un catálogo de ejemplo para probar los filtros y la
 valoración antes de configurar nada. Los títulos de ejemplo se distinguen con

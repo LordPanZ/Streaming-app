@@ -337,4 +337,17 @@ describe('verifyKey (FR-036)', () => {
     expect(result.ok).toBe(false);
     expect(result.message).not.toContain('CLAVE-SECRETA');
   });
+
+  it('ante un 401 explica la confusión entre la clave v3 y el testigo v4', async () => {
+    const fake = fetchFromTable([['/watch/providers/movie', { status: 401, body: {} }]]);
+    const client = new TmdbClient({
+      apiKey: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJ4In0.ZmFrZQ',
+      http: new HttpClient({ fetchImpl: fake.fetch, sleep: () => Promise.resolve() }),
+    });
+
+    const result = await client.verifyKey();
+    expect(result.ok).toBe(false);
+    expect(result.message).toContain('v3');
+    expect(result.message).not.toContain('eyJhbGciOiJIUzI1NiJ9');
+  });
 });

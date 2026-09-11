@@ -12,7 +12,8 @@ import { platformIdForProviderName, platformName } from '../domain/platforms';
 import { emptyCriticRatings } from '../domain/scoring';
 import { selectTrailer, type VideoCandidate } from '../domain/trailer';
 import { isoWeekOfDate } from '../domain/weeks';
-import type { HttpClient } from './http';
+import { HttpError, type HttpClient } from './http';
+import { tmdbKeyWarning } from '../domain/api-keys';
 
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_BASE = 'https://image.tmdb.org/t/p';
@@ -198,6 +199,17 @@ export class TmdbClient {
         ? { ok: true, message: `Clave de TMDB válida. ${catalog.length} proveedores en España.` }
         : { ok: false, message: 'TMDB responde pero no devuelve proveedores para España.' };
     } catch (error) {
+      // Un 401 aquí casi siempre es haber pegado el testigo v4 en lugar de la
+      // clave v3. Decirlo ahorra buscar un fallo que no existe.
+      if (error instanceof HttpError && error.status === 401) {
+        const hint = tmdbKeyWarning(this.apiKey);
+        return {
+          ok: false,
+          message: hint
+            ? `TMDB ha rechazado la clave. ${hint}`
+            : 'TMDB ha rechazado la clave. Comprueba que es la «API Key (v3 auth)», de 32 caracteres.',
+        };
+      }
       return { ok: false, message: error instanceof Error ? error.message : 'Error desconocido.' };
     }
   }

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import type { RatingCriterion, SecretsStatus, Settings } from '../../shared/types';
 import { PLATFORMS } from '../../core/domain/platforms';
 import { normalizedWeights } from '../../core/domain/scoring';
+import { omdbKeyWarning, tmdbKeyWarning } from '../../core/domain/api-keys';
 import { api, describeApiError, unwrap } from '../api';
 import { Banner } from '../components/EmptyState';
 import { formatDateTime } from '../format';
@@ -107,7 +108,9 @@ function ApiKeysSection({
           TMDB · catálogo, plataformas, géneros y tráileres
         </label>
         <p className="field__hint">
-          Obligatoria. Se obtiene gratis en themoviedb.org → Ajustes → API.
+          Obligatoria y gratuita, te la dan al momento. En esa página hay dos credenciales:
+          necesitas la de arriba, «API Key (v3 auth)», de 32 caracteres. El «Read Access Token»,
+          el que empieza por eyJ, no vale aquí.
           {secrets?.tmdb.present && ` Guardada actualmente: ${secrets.tmdb.hint}.`}
         </p>
         <div className="field__row">
@@ -115,7 +118,9 @@ function ApiKeysSection({
             id="key-tmdb"
             type="password"
             value={tmdb}
-            placeholder={secrets?.tmdb.present ? 'Introduce una nueva para sustituirla' : 'Tu clave de TMDB'}
+            placeholder={
+              secrets?.tmdb.present ? 'Introduce una nueva para sustituirla' : 'Tu clave de TMDB (32 caracteres)'
+            }
             onChange={(event) => setTmdb(event.target.value)}
             autoComplete="off"
           />
@@ -136,6 +141,9 @@ function ApiKeysSection({
             Verificar
           </button>
         </div>
+        {tmdbKeyWarning(tmdb) && (
+          <p className="field__hint field__hint--warn">{tmdbKeyWarning(tmdb)}</p>
+        )}
         {verification.tmdb && <p className="field__hint">{verification.tmdb}</p>}
       </div>
 
@@ -174,6 +182,9 @@ function ApiKeysSection({
             Verificar
           </button>
         </div>
+        {omdbKeyWarning(omdb) && (
+          <p className="field__hint field__hint--warn">{omdbKeyWarning(omdb)}</p>
+        )}
         {verification.omdb && <p className="field__hint">{verification.omdb}</p>}
       </div>
     </section>

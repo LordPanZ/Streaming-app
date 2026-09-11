@@ -94,7 +94,7 @@ La aplicación **no incluye claves**: usas las tuyas, gratuitas y personales.
 
 | Servicio | Dónde se pide | Para qué | ¿Obligatoria? |
 |---|---|---|---|
-| [TMDB](https://www.themoviedb.org/settings/api) | Ajustes → API | Catálogo, plataformas, géneros y tráileres | Sí |
+| [TMDB](https://www.themoviedb.org/settings/api) | Ajustes → API. **Copia la «API Key (v3 auth)»**, de 32 caracteres; el «Read Access Token» que empieza por `eyJ` no sirve aquí | Catálogo, plataformas, géneros y tráileres | Sí |
 | [OMDb](https://www.omdbapi.com/apikey.aspx) | Plan gratuito, 1 000 consultas al día | IMDb, Rotten Tomatoes y Metacritic | No, pero sin ella solo verás la nota de TMDB |
 
 Se introducen en **Ajustes → Claves de API**, hay un botón para verificar cada
@@ -107,7 +107,7 @@ una, y no salen nunca de tu equipo.
 ```bash
 npm ci
 npm run dev        # Vite + Electron con recarga en caliente
-npm test           # 385 pruebas, sin red y sin claves
+npm test           # 395 pruebas, sin red y sin claves
 npm run check      # tipos + estilo + pruebas
 npm run package    # instalador de escritorio para el sistema actual
 
