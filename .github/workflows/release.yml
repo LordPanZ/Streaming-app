@@ -69,22 +69,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Recoger todo lo construido
-        uses: actions/download-artifact@v4
-        with:
-          path: artefactos
-
+      # El orden importa: `checkout` limpia el espacio de trabajo, así que si va
+      # después borra los artefactos recién descargados.
       - uses: actions/checkout@v4
 
       - name: Leer la versión del proyecto
         id: v
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
+      - name: Recoger todo lo construido
+        uses: actions/download-artifact@v4
+        with:
+          path: artefactos
+
       - name: Aplanar los archivos
         run: |
           mkdir -p publicar
           find artefactos -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' \
             -o -name '*.deb' -o -name '*.apk' \) -exec cp {} publicar/ \;
+          # Publicar una versión sin archivos sería peor que no publicarla.
+          if [ -z "$(ls -A publicar)" ]; then
+            echo "No se ha recogido ningún instalador; se aborta la publicación." >&2
+            exit 1
+          fi
           ls -lh publicar
 
       - name: Publicar
