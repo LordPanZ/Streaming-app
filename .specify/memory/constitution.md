@@ -2,7 +2,7 @@
 
 > Documento normativo. Toda decisión de diseño, plan o tarea que contradiga este
 > documento es inválida hasta que la constitución se enmiende explícitamente.
-> Versión: 1.0.0 · Ratificada: 2026-09-10
+> Versión: 1.1.0 · Ratificada: 2026-09-10 · Enmendada: 2026-09-11
 
 ## Artículo I — La especificación es la fuente de verdad
 
@@ -15,21 +15,30 @@
 
 ## Artículo II — Núcleo puro y aislado
 
-1. `src/core/**` no importa Electron, React, ni ningún API de navegador.
-   Es TypeScript ejecutable en Node puro y comprobable sin arrancar la app.
+1. `src/core/**` no importa Electron, React, módulos de Node ni ningún API de
+   navegador. Es TypeScript ejecutable en cualquiera de los tres entornos donde
+   vive la aplicación —Electron, consola y vista web de Android— y comprobable
+   sin arrancar ninguno.
 2. Todo acceso a red se realiza a través de una función `fetch` inyectada
    (`HttpClient`). Ninguna capa de dominio construye una petición por su cuenta.
 3. Todo acceso a disco se realiza a través de la interfaz de almacenamiento.
    El dominio no conoce rutas.
+4. Lo que difiere entre plataformas vive en `src/platform/`, nunca en el núcleo,
+   y sus garantías se declaran cuando no son equivalentes.
 
 ## Artículo III — Los datos del usuario son del usuario
 
 1. Los datos personales (vistos, valoraciones, notas) se guardan **solo** en la
    máquina del usuario, en su directorio de datos de aplicación.
 2. La app no envía telemetría. No hay analítica. No hay servidores propios.
-3. Las claves de API se guardan cifradas con el almacén del sistema operativo
-   (`safeStorage`). Nunca se escriben en el repositorio, ni en logs, ni en los
-   informes de ejecución del agente.
+3. Las claves de API se guardan con la mejor protección que ofrezca el sistema,
+   y la aplicación **dice cuál es** en lugar de dar a entender más:
+   - en el PC, cifradas con el almacén del sistema operativo (`safeStorage`);
+   - en Android, en el almacenamiento privado de la aplicación, que el sistema
+     aísla de otras aplicaciones pero no cifra con una clave del hardware.
+
+   Nunca se escriben en el repositorio, ni en logs, ni en los informes de
+   ejecución del agente, en ninguna plataforma.
 4. El usuario puede exportar todos sus datos a JSON y borrarlos por completo.
 
 ## Artículo IV — Degradación honesta
@@ -57,6 +66,16 @@
    tipado y validado en el proceso principal. Toda entrada IPC se valida.
 3. La navegación externa y `window.open` se abren en el navegador del sistema,
    nunca dentro de la app.
+
+## Artículo VII bis — Una sola lógica para todas las plataformas
+
+1. El PC y el móvil comparten el núcleo y la interfaz. Una corrección de
+   comportamiento se hace una vez y vale para ambos.
+2. Una plataforma puede ofrecer **menos** que otra —Android no ejecuta en
+   segundo plano, no cifra las claves con el sistema y no garantiza escrituras
+   atómicas—, pero nunca algo **distinto** sin decirlo. Cada diferencia consta
+   en una decisión de arquitectura y en la documentación de usuario.
+3. Ninguna plataforma presenta como cierta una garantía que solo cumple la otra.
 
 ## Artículo VII — Reproducibilidad
 
