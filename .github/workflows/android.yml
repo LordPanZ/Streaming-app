@@ -28,11 +28,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # Electron no entra en el APK, pero la prueba de humo del renderizado lo
+      # usa para cargar la interfaz compilada como lo hará el móvil. Saltarse su
+      # descarga dejaba ese paso sin poder ejecutarse.
       - name: Instalar dependencias
         run: npm ci
-        env:
-          # El APK no lleva Electron dentro: bajarlo solo alargaría el trabajo.
-          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
 
       - name: Comprobar antes de construir
         run: npm run typecheck && npm test
