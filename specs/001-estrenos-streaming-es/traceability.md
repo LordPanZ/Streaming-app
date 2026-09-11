@@ -55,9 +55,9 @@ automático nada que no lo esté.
 | FR-038 Importación | `core/store/transfer.ts` (`parseBundle`, `applyBundle`) | `unit/transfer.test.ts` → «respeta las valoraciones existentes» | Automática |
 | FR-039 Borrado | `core/store/transfer.ts` (`wipeAll`) | `unit/transfer.test.ts` → bloque `wipeAll` | Automática |
 | FR-040 Persistencia local atómica | `platform/node/node-storage.ts` (PC), `platform/capacitor/capacitor-storage.ts` (Android) | `unit/stores.test.ts` → «escribe de forma atómica»; `unit/capacitor-storage.test.ts` → «recupera la copia si el documento principal quedó a medio escribir» | Automática **en el PC**; en Android la garantía es menor y se declara en ADR-013 |
-| FR-041 Aplicación descargable | `electron-builder.yml`, `.github/workflows/release.yml` | Compilación verificada en CI; instaladores generados al etiquetar | Parcial |
+| FR-041 Aplicación descargable para PC | `electron-builder.yml`, `.github/workflows/release.yml` | AppImage de Linux construido y verificado en este entorno (104 MB, arranca limpio); instaladores de Windows, macOS y Linux construidos en integración continua | Construido, no instalado en Windows ni macOS |
 | FR-042 Primer arranque sin claves | `renderer/views/Browse.tsx`, `core/app/app-service.ts` (`NO_API_KEY`) | Lista manual §3, punto 1 | Manual |
-| FR-043 Aplicación para Android | `capacitor.config.ts`, `android/`, `.github/workflows/android.yml` | Construcción del APK en integración continua | Parcial |
+| FR-043 Aplicación para Android | `capacitor.config.ts`, `android/`, `.github/workflows/android.yml` | APK construido en integración continua (3,8 MB) tras pasar tipos y las 356 pruebas | Construido, no instalado en un móvil físico |
 | FR-044 Misma lógica en ambas plataformas | `core/app/app-service.ts`, `platform/capacitor/local-api.ts` | `unit/architecture.test.ts` (núcleo sin importaciones externas); el servicio es el único camino en las dos | Automática (estructura) |
 | FR-045 Interfaz adaptada al móvil | `renderer/styles/global.css` (consultas de medios) | Medición del ancho del documento a 412 px y a 360 px, sin desbordamiento | Automática (medida) + manual |
 | FR-046 Recopilación sin servicio en segundo plano | `core/app/app-service.ts` (`runIfDue`), `platform/capacitor/bootstrap.ts` | `unit/scheduler.test.ts` → «tres semanas vencidas producen una sola ejecución» | Automática |
@@ -68,7 +68,7 @@ automático nada que no lo esté.
 | Requisito | Implementación | Prueba | Cobertura |
 |---|---|---|---|
 | NFR-001 Núcleo aislado | Estructura de `src/core` | `unit/architecture.test.ts` (4 casos, incluido «cero dependencias de terceros») | Automática |
-| NFR-002 Pruebas sin red ni claves | `tests/helpers/fake-fetch.ts`, `tests/fixtures/` | Toda la batería; `.github/workflows/checks.yml` | Automática |
+| NFR-002 Pruebas sin red ni claves | `tests/helpers/fake-fetch.ts`, `tests/fixtures/` | Toda la batería. Confirmado en clon limpio por `checks.yml` en las máquinas de GitHub, y en los tres sistemas dentro de `release.yml` | Automática |
 | NFR-003 Límite de tasa y espera exponencial | `core/providers/http.ts` | `contract/http.test.ts` → «la espera crece exponencialmente», «respeta Retry-After» | Automática |
 | NFR-004 Caché con expiración | `core/providers/cache.ts` | `contract/http.test.ts` → bloque «caché» (5 casos) | Automática |
 | NFR-005 Ejecución en menos de 10 min | Concurrencia 4, `append_to_response`, caché | Medición registrada en cada informe (`durationMs`) | Observada en ejecución |
