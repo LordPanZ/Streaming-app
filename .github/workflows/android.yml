@@ -37,6 +37,10 @@ jobs:
       - name: Comprobar antes de construir
         run: npm run typecheck && npm test
 
+      # Imprescindible aquí: es la interfaz que acabará dentro del APK.
+      - name: Prueba de humo del renderizado
+        run: npm run build:renderer && npm run smoke
+
       - name: Compilar la interfaz y sincronizar el contenedor
         run: npm run build:android
 

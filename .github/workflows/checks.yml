@@ -36,3 +36,9 @@ jobs:
 
       - name: Compilar
         run: npm run build
+
+      # Carga la interfaz compilada sin precargador, como en Android, y
+      # comprueba que se monta y sobrevive. Una pantalla negra en el móvil
+      # pasaba todas las pruebas unitarias antes de existir esto.
+      - name: Prueba de humo del renderizado
+        run: npm run smoke

@@ -37,6 +37,11 @@ jobs:
       - name: Comprobar antes de empaquetar
         run: npm run check
 
+      - name: Prueba de humo del renderizado
+        # Solo en Linux: necesita un servidor X virtual y basta con una vez.
+        if: runner.os == 'Linux'
+        run: npm run build:renderer && npm run smoke
+
       - name: Construir el instalador
         run: npm run package
         env:
@@ -69,6 +74,12 @@ jobs:
         with:
           path: artefactos
 
+      - uses: actions/checkout@v4
+
+      - name: Leer la versión del proyecto
+        id: v
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Aplanar los archivos
         run: |
           mkdir -p publicar
@@ -81,19 +92,21 @@ jobs:
         with:
           # Etiqueta fija: cada ejecución sustituye los archivos de esta versión
           # en lugar de acumular publicaciones sueltas.
-          tag_name: v1.0.0
-          name: Estrenos ES 1.0.0
+          # La versión sale de package.json: publicar dos veces cosas distintas
+          # bajo la misma etiqueta sería mentir sobre qué lleva cada una.
+          tag_name: v${{ steps.v.outputs.version }}
+          name: Estrenos ES ${{ steps.v.outputs.version }}
           body: |
-            Primera versión. Recopilación semanal de estrenos de doce plataformas
+            Recopilación semanal de estrenos de doce plataformas
             de streaming en España, con notas de IMDb, Rotten Tomatoes, Metacritic
             y TMDB, géneros, tráiler en castellano verificado, marcado de vistas y
             valoración por siete criterios ponderados.
 
             | Sistema | Archivo |
             |---|---|
-            | Windows | `Estrenos-ES-Setup-1.0.0.exe` |
-            | macOS | `Estrenos-ES-1.0.0-<arquitectura>.dmg` |
-            | Linux | `Estrenos-ES-1.0.0.AppImage` o `.deb` |
+            | Windows | `Estrenos-ES-Setup-<versión>.exe` |
+            | macOS | `Estrenos-ES-<versión>-<arquitectura>.dmg` |
+            | Linux | `Estrenos-ES-<versión>.AppImage` o `.deb` |
             | Android | `app-debug.apk` |
 
             Los archivos de escritorio no van firmados y el APK lleva firma de

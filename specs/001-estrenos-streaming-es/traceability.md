@@ -57,7 +57,8 @@ automático nada que no lo esté.
 | FR-040 Persistencia local atómica | `platform/node/node-storage.ts` (PC), `platform/capacitor/capacitor-storage.ts` (Android) | `unit/stores.test.ts` → «escribe de forma atómica»; `unit/capacitor-storage.test.ts` → «recupera la copia si el documento principal quedó a medio escribir» | Automática **en el PC**; en Android la garantía es menor y se declara en ADR-013 |
 | FR-041 Aplicación descargable para PC | `electron-builder.yml`, `.github/workflows/release.yml` | AppImage de Linux construido y verificado en este entorno (104 MB, arranca limpio); instaladores de Windows, macOS y Linux construidos en integración continua | Construido, no instalado en Windows ni macOS |
 | FR-042 Primer arranque sin claves | `renderer/views/Browse.tsx`, `core/app/app-service.ts` (`NO_API_KEY`) | Lista manual §3, punto 1 | Manual |
-| FR-043 Aplicación para Android | `capacitor.config.ts`, `android/`, `.github/workflows/android.yml` | APK construido en integración continua (3,8 MB) tras pasar tipos y las 356 pruebas | Construido, no instalado en un móvil físico |
+| FR-043 Aplicación para Android | `capacitor.config.ts`, `android/`, `.github/workflows/android.yml` | APK construido en integración continua tras pasar tipos, pruebas y la prueba de humo del renderizado | Construido; instalado en un móvil y corregido tras fallar allí (v1.0.1) |
+| FR-044 · el puente en el móvil | `renderer/api.ts` | `unit/renderer-api.test.ts` (7 casos) y `scripts/smoke/main.cjs` | Automática |
 | FR-044 Misma lógica en ambas plataformas | `core/app/app-service.ts`, `platform/capacitor/local-api.ts` | `unit/architecture.test.ts` (núcleo sin importaciones externas); el servicio es el único camino en las dos | Automática (estructura) |
 | FR-045 Interfaz adaptada al móvil | `renderer/styles/global.css` (consultas de medios) | Medición del ancho del documento a 412 px y a 360 px, sin desbordamiento | Automática (medida) + manual |
 | FR-046 Recopilación sin servicio en segundo plano | `core/app/app-service.ts` (`runIfDue`), `platform/capacitor/bootstrap.ts` | `unit/scheduler.test.ts` → «tres semanas vencidas producen una sola ejecución» | Automática |
@@ -79,6 +80,7 @@ automático nada que no lo esté.
 | NFR-010 Sin telemetría | Lista blanca de `core/providers/http.ts` | `contract/http.test.ts` → «rechaza cualquier otro anfitrión sin llegar a pedir nada» | Automática |
 | NFR-011 Núcleo sin APIs de Node | `core/store/storage.ts`, `src/platform/` | `unit/architecture.test.ts` → «ningún archivo de src/core importa un módulo de Node» | Automática |
 | NFR-012 Sin desbordamiento desde 360 px | `renderer/styles/global.css` | Medición de `scrollWidth` frente a `clientWidth` a 412 px y 360 px | Automática (medida) |
+| NFR-013 La interfaz se monta y sobrevive sin precargador | `renderer/main.tsx`, `renderer/api.ts` | `npm run smoke`: carga el paquete compilado por HTTP sin precargador y comprueba que la aplicación sigue en pie tras los efectos | Automática |
 
 ## 3. Lista de verificación manual
 
@@ -112,6 +114,21 @@ Se recorre antes de publicar una versión. Cada punto cita el requisito que cubr
    contiene ninguna clave de API, importar en un perfil limpio y comprobar que
    las valoraciones se conservan.
 
+## 3 bis. Lo que esta matriz no vio venir
+
+La versión 1.0.0 arrancaba en negro en Android. Las 356 pruebas pasaban, el APK
+se construía y la matriz daba FR-043 por «construido». El fallo era que
+`renderer/api.ts` capturaba `window.api` al cargar el módulo: en el PC el
+precargador de Electron lo define antes, en Android lo define el arranque del
+móvil después, así que quedaba `undefined` y el primer efecto tumbaba React.
+
+Ninguna prueba lo cubría porque todas ejercitaban el núcleo, y el núcleo estaba
+bien. Faltaba comprobar lo único que el usuario ve: que la interfaz aparezca.
+De ahí salen `unit/renderer-api.test.ts` y la prueba de humo, y NFR-013.
+
+Lección aplicada a la matriz: «construido» no es una cobertura, es un estado de
+compilación. Las filas de FR-041 y FR-043 lo dicen así ahora.
+
 ## 4. Requisitos sin cobertura automática
 
 Se declaran aquí para que consten, en lugar de darlos por probados:
@@ -121,7 +138,7 @@ Se declaran aquí para que consten, en lugar de darlos por probados:
 | FR-032, FR-034, FR-042 | Presentación de la interfaz; no hay banco de pruebas de componentes | T094 |
 | FR-035 (persistencia cifrada) | `safeStorage` exige un proceso de Electron en ejecución | T095 |
 | FR-041 | El empaquetado real solo se verifica al ejecutar `electron-builder` en cada sistema. Comprobado el AppImage de Linux; Windows y macOS solo en integración continua | T096 |
-| FR-043 | El APK se construye en integración continua, pero no se ha instalado en un móvil físico desde este entorno | T097 |
+| FR-043 | El APK se instaló en un móvil y falló con pantalla negra; corregido y cubierto por prueba de humo, pero la versión corregida tampoco se ha instalado desde este entorno | T097 |
 | FR-045 | Verificado midiendo el ancho del documento en un navegador emulando un móvil, no en un dispositivo real | T097 |
 | NFR-005 | Depende de la red real y del tamaño del catálogo de cada semana | — |
 | NFR-007 | Configuración de `BrowserWindow`; se verifica a mano (punto 8) | T094 |

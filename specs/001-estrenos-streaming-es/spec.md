@@ -365,6 +365,7 @@ guardadas en cada plataforma, sin prometer más de lo que hay.
 | **NFR-010** | Sin telemetría ni peticiones a servidores propios | Inventario de destinos de red documentado en `research.md` |
 | **NFR-011** | El núcleo no usa APIs exclusivas de Node: se ejecuta igual en Node y en un navegador | Prueba que falla si aparece un `import` de `node:` en `src/core` |
 | **NFR-012** | La interfaz funciona desde 360 px de ancho sin desbordamiento horizontal | Prueba de los puntos de ruptura y revisión manual en móvil |
+| **NFR-013** | La interfaz se monta y **sigue en pie** cargando el paquete compilado por HTTP sin precargador, como en Android | Prueba de humo que carga `dist/renderer`, espera a que pasen los efectos y comprueba que la aplicación no se ha caído |
 
 ---
 

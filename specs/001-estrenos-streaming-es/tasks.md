@@ -101,6 +101,14 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T106** Interfaz adaptada a pantallas estrechas *(FR-045, NFR-012)* → `renderer/styles/global.css`
 - [x] **T107** Proyecto de Android y flujo que construye el APK *(FR-043)* → `capacitor.config.ts`, `android/`, `.github/workflows/android.yml`
 
+## Fase 10 — Corrección de la pantalla negra en Android (v1.0.1)
+
+- [x] **T110** Acceso diferido al puente en la interfaz *(FR-044)* → `renderer/api.ts`
+- [x] **T111** Regresión del orden de carga del puente → `tests/unit/renderer-api.test.ts`
+- [x] **T112** Prueba de humo del renderizado sin precargador *(NFR-013)* → `scripts/smoke/main.cjs`
+- [x] **T113** La prueba de humo entra en los tres flujos de integración continua
+- [x] **T114** `connect-src` de la política de contenido alineado con el inventario de ADR-010
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

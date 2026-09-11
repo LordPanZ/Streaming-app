@@ -32,7 +32,39 @@ export async function unwrap<T>(promise: Promise<IpcResult<T>>): Promise<T> {
   return result.data;
 }
 
-export const api = window.api;
+/**
+ * Acceso diferido al puente.
+ *
+ * **No** se puede hacer `const api = window.api` al cargar el módulo. En el PC
+ * funcionaría, porque el precargador de Electron define `window.api` antes de
+ * que se ejecute nada de la interfaz; pero en Android lo define el arranque del
+ * móvil de forma asíncrona, y para entonces este módulo ya habría capturado
+ * `undefined`. El resultado era una pantalla negra: el primer efecto que
+ * tocaba `api.on` lanzaba y React no llegaba a pintar.
+ *
+ * Con un proxy, cada acceso resuelve el puente en ese momento.
+ */
+function bridge(): IpcApi {
+  const current = window.api;
+  if (!current) {
+    throw new Error('La aplicación todavía no ha terminado de iniciarse.');
+  }
+  return current;
+}
+
+export const api: IpcApi = new Proxy({} as IpcApi, {
+  get(_target, property) {
+    return bridge()[property as keyof IpcApi];
+  },
+  has(_target, property) {
+    return property in bridge();
+  },
+});
+
+/** ¿Está ya disponible el puente? Útil para no renderizar antes de tiempo. */
+export function isApiReady(): boolean {
+  return Boolean(window.api);
+}
 
 export function describeApiError(error: unknown): string {
   if (error instanceof ApiError) return error.message;
