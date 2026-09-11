@@ -1311,6 +1311,17 @@ input[type='number']:focus {
 
 /* Pantallas muy estrechas: una sola columna de tarjetas. */
 @media (max-width: 380px) {
+  :root {
+    /* La etiqueta más larga («Esta semana») necesita dos líneas a este ancho. */
+    --bottom-nav-height: 64px;
+  }
+
+  .nav-item {
+    font-size: 9.5px;
+    line-height: 1.2;
+    padding: 6px 2px;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
