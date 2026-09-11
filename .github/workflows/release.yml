@@ -6,6 +6,8 @@ name: Publicar instaladores
 on:
   push:
     tags: ['v*']
+  # También a mano, para poder generar los instaladores sin etiquetar una
+  # versión: útil cuando solo se quiere probar el resultado.
   workflow_dispatch:
 
 jobs:
