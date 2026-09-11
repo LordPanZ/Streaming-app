@@ -13,6 +13,7 @@ import { useSettings } from './hooks/useSettings';
 import { Banner } from './components/EmptyState';
 import { TitleDetail } from './components/TitleDetail';
 import { Browse } from './views/Browse';
+import { Onboarding } from './views/Onboarding';
 import { Runs } from './views/Runs';
 import { SettingsView } from './views/SettingsView';
 import { Watched } from './views/Watched';
@@ -36,12 +37,35 @@ export function App() {
   const [selected, setSelected] = useState<TitleView | null>(null);
   const [searchDraft, setSearchDraft] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
+  const [skippedOnboarding, setSkippedOnboarding] = useState(false);
 
   const catalog = useCatalog(WEEK_QUERY);
   const settings = useSettings();
   const agent = useAgent();
 
   const hasKeys = agent.status?.hasKeys ?? false;
+
+  /**
+   * El primer arranque se enseña mientras no haya ni clave ni catálogo (FR-050).
+   * En cuanto exista cualquiera de las dos cosas —o el usuario decida saltarlo—
+   * deja de aparecer y no vuelve a molestar.
+   */
+  const needsOnboarding =
+    !skippedOnboarding &&
+    !hasKeys &&
+    catalog.facets !== null &&
+    catalog.facets.totalTitles === 0 &&
+    agent.status !== null;
+
+  const loadSamples = useCallback(async () => {
+    try {
+      await unwrap(api.data.loadSamples());
+      setSkippedOnboarding(true);
+      await catalog.reload();
+    } catch (caught) {
+      setActionError(describeApiError(caught));
+    }
+  }, [catalog]);
 
   // Cambiar entre «Esta semana» y «Catálogo» solo cambia el filtro de semana:
   // los demás filtros que haya puesto el usuario se respetan.
@@ -239,7 +263,20 @@ export function App() {
             </Banner>
           )}
 
-          {(view === 'week' || view === 'catalog') && (
+          {needsOnboarding && view === 'week' ? (
+            <Onboarding
+              onReady={async () => {
+                await agent.refresh();
+                await settings.reload();
+                setSkippedOnboarding(true);
+                void agent.run();
+              }}
+              onLoadSamples={loadSamples}
+              onSkip={() => setSkippedOnboarding(true)}
+            />
+          ) : null}
+
+          {!needsOnboarding && (view === 'week' || view === 'catalog') && (
             <Browse
               mode={view}
               query={catalog.query}

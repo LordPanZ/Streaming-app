@@ -44,6 +44,11 @@ export function TitleCard({ view, onOpen, onToggleWatched }: TitleCardProps) {
           </div>
         )}
         <span className="card__type">{mediaLabel(title.mediaType)}</span>
+        {title.sample && (
+          <span className="card__sample" title="Título de ejemplo, no es un estreno real">
+            Ejemplo
+          </span>
+        )}
         {watched && (
           <span className="card__watched" title="Visto">
             ✓

@@ -69,6 +69,8 @@ const api: IpcApi = {
     export: () => invoke(IPC.dataExport),
     import: (input: ImportInput) => invoke(IPC.dataImport, input),
     wipe: () => invoke(IPC.dataWipe),
+    loadSamples: () => invoke(IPC.dataSamplesLoad),
+    clearSamples: () => invoke(IPC.dataSamplesClear),
   },
   shell: {
     openExternal: (url: string) => invoke(IPC.shellOpenExternal, { url }),

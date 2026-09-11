@@ -27,6 +27,15 @@ no existe se muestra como «sin datos»: nunca se sustituye por un cero.
 
 **Géneros en castellano**, filtrables.
 
+**Quién está detrás.** Reparto principal y dirección —o creación, en las
+series—, en la misma petición que el resto de la ficha: ni una consulta de más.
+
+**Empezar sin fricción.** El primer arranque te lleva de la mano en tres pasos
+hasta la clave, con el enlace exacto donde se pide. Y si prefieres verla por
+dentro antes de registrarte en nada, hay un catálogo de ejemplo: diez títulos
+inventados, marcados como tales, que desaparecen solos en cuanto llega la
+primera recopilación real. Nunca se mezclan con los estrenos de verdad.
+
 **Tráiler en castellano verificado.** Se busca el tráiler en `es-ES`, y el enlace
 se comprueba contra YouTube antes de presentarlo. Si el vídeo se ha retirado, se
 dice y se ofrece una búsqueda de respaldo, en vez de dejar un enlace roto.
@@ -98,7 +107,7 @@ una, y no salen nunca de tu equipo.
 ```bash
 npm ci
 npm run dev        # Vite + Electron con recarga en caliente
-npm test           # 356 pruebas, sin red y sin claves
+npm test           # 385 pruebas, sin red y sin claves
 npm run check      # tipos + estilo + pruebas
 npm run package    # instalador de escritorio para el sistema actual
 

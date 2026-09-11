@@ -38,6 +38,7 @@ import {
   ValidationError,
 } from '../../shared/validate';
 import { sanitizeScores } from '../domain/criteria';
+import { buildSampleCatalog } from '../domain/sample-catalog';
 import { sanitizeMessage } from '../providers/http';
 import { ensureScheduled } from '../agent/scheduler';
 import { summarize } from '../store/runs';
@@ -259,6 +260,28 @@ export class AppService {
     const outcome = await applyBundle(this.stores(), parseBundle(raw), overwriteRatings);
     this.emit({ type: 'catalog:changed', payload: { reason: 'import' } });
     return outcome;
+  }
+
+  /**
+   * Carga el catálogo de ejemplo (FR-051), para poder probar filtros y
+   * valoración sin configurar ninguna clave.
+   */
+  async loadSamples(): Promise<{ loaded: number }> {
+    const titles = buildSampleCatalog(new Date());
+    const outcome = await this.container.catalog.upsertMany(titles);
+    this.emit({ type: 'catalog:changed', payload: { reason: 'import' } });
+    return { loaded: outcome.created + outcome.updated };
+  }
+
+  /** Retira los títulos de ejemplo sin tocar nada más (FR-051). */
+  async clearSamples(): Promise<{ removed: number }> {
+    const removed = await this.container.catalog.removeSamples();
+    this.emit({ type: 'catalog:changed', payload: { reason: 'import' } });
+    return { removed };
+  }
+
+  hasSamples(): boolean {
+    return this.container.catalog.hasSamples();
   }
 
   async dataWipe(): Promise<{ ok: true }> {

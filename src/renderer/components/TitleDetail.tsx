@@ -11,6 +11,7 @@ import {
   mediaLabel,
 } from '../format';
 import { PlatformBadges } from './PlatformBadge';
+import { api } from '../api';
 import { CriticBadges, CriticScore } from './Ratings';
 import { RatingPanel } from './RatingPanel';
 import { TrailerDetail } from './TrailerButton';
@@ -34,6 +35,9 @@ export function TitleDetail({
 }: TitleDetailProps) {
   const { title, critic, personal, delta } = view;
   const duration = formatRuntime(title.runtimeMinutes) ?? formatSeasons(title.seasons);
+  // Solo las plataformas que traen enlace: un botón que no lleva a ningún sitio
+  // es peor que no tener botón (FR-049).
+  const watchLinks = title.platforms.filter((platform) => Boolean(platform.link));
 
   return (
     <div
@@ -54,6 +58,13 @@ export function TitleDetail({
         </div>
 
         <div className="drawer__body">
+          {title.sample && (
+            <div className="banner banner--warn" style={{ margin: 0 }}>
+              Título de ejemplo: no es un estreno real. Sirve para probar la aplicación y
+              desaparecerá en cuanto llegue la primera recopilación.
+            </div>
+          )}
+
           <header>
             <h2 className="drawer__title">{title.title}</h2>
             {title.originalTitle !== title.title && (
@@ -119,6 +130,44 @@ export function TitleDetail({
               </span>
             </div>
           </section>
+
+          {(title.directors.length > 0 || title.cast.length > 0) && (
+            <section className="section">
+              <h4 className="section__title">Quién está detrás</h4>
+              {title.directors.length > 0 && (
+                <div className="detail-row">
+                  <span className="detail-row__label">
+                    {title.mediaType === 'series' ? 'Creación' : 'Dirección'}
+                  </span>
+                  <span>{title.directors.join(', ')}</span>
+                </div>
+              )}
+              {title.cast.length > 0 && (
+                <div className="detail-row">
+                  <span className="detail-row__label">Reparto</span>
+                  <span style={{ textAlign: 'right' }}>{title.cast.join(', ')}</span>
+                </div>
+              )}
+            </section>
+          )}
+
+          {watchLinks.length > 0 && (
+            <section className="section">
+              <h4 className="section__title">Dónde verla</h4>
+              <div className="trailer">
+                {watchLinks.map((platform) => (
+                  <button
+                    key={platform.id}
+                    type="button"
+                    className="btn"
+                    onClick={() => void api.shell.openExternal(platform.link!)}
+                  >
+                    Ver en {platform.name} ↗
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="section">
             <h4 className="section__title">Notas de la crítica</h4>

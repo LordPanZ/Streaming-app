@@ -39,6 +39,8 @@ export const IPC = {
   secretsSet: 'secrets:set',
   secretsStatus: 'secrets:status',
   secretsVerify: 'secrets:verify',
+  dataSamplesLoad: 'data:samples-load',
+  dataSamplesClear: 'data:samples-clear',
   dataExport: 'data:export',
   dataImport: 'data:import',
   dataWipe: 'data:wipe',
@@ -151,6 +153,10 @@ export interface IpcApi {
     export(): Promise<IpcResult<{ path: string | null }>>;
     import(input: ImportInput): Promise<IpcResult<ImportResult>>;
     wipe(): Promise<IpcResult<{ ok: true }>>;
+    /** Carga el catálogo de ejemplo (FR-051). */
+    loadSamples(): Promise<IpcResult<{ loaded: number }>>;
+    /** Retira los títulos de ejemplo (FR-051). */
+    clearSamples(): Promise<IpcResult<{ removed: number }>>;
   };
   shell: {
     openExternal(url: string): Promise<IpcResult<{ opened: boolean }>>;

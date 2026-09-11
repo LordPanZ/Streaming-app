@@ -39,6 +39,9 @@ Un título de catálogo. Clave primaria `id`.
 | `imdbId` | `string` | sí | Identificador IMDb (`tt…`) | FR-013 |
 | `ratings` | `CriticRatings` | no | Notas de crítica por fuente | FR-013 |
 | `trailer` | `Trailer` | sí | Tráiler seleccionado | FR-016 |
+| `cast` | `string[]` | no | Reparto principal, hasta seis nombres; vacío si la fuente no lo declara | FR-048 |
+| `directors` | `string[]` | no | Dirección, o creación en el caso de las series | FR-048 |
+| `sample` | `boolean` | sí | `true` solo en los títulos de ejemplo, para poder distinguirlos y borrarlos | FR-051 |
 | `firstSeenAt` | `string` (ISO 8601) | no | Cuándo lo vio el agente por primera vez | FR-008 |
 | `updatedAt` | `string` (ISO 8601) | no | Última actualización de la ficha | FR-008 |
 

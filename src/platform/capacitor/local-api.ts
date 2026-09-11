@@ -121,6 +121,8 @@ export function createLocalApi(options: LocalApiOptions): IpcApi {
           return service.applyImport(JSON.parse(raw), input);
         }),
       wipe: () => wrap(() => service.dataWipe()),
+      loadSamples: () => wrap(() => service.loadSamples()),
+      clearSamples: () => wrap(() => service.clearSamples()),
     },
     shell: {
       openExternal: (url) =>

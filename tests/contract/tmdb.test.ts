@@ -6,11 +6,14 @@
 import { describe, expect, it } from 'vitest';
 import { HttpClient } from '../../src/core/providers/http';
 import {
+  extractCast,
+  extractDirectors,
   extractGenres,
   extractPlatforms,
   GENRE_UNCLASSIFIED,
   imageUrl,
   mapTitle,
+  MAX_CAST,
   MAX_DISCOVER_PAGES,
   normalizeImdbId,
   releaseDate,
@@ -201,6 +204,52 @@ describe('mapeo de la ficha (FR-011, FR-012, FR-016)', () => {
       now: NOW,
     });
     expect(title?.trailer?.youtubeId).toBe('EXTRA');
+  });
+});
+
+describe('reparto y dirección (FR-048)', () => {
+  it('vienen en la misma petición, sin consultas adicionales', async () => {
+    const fake = fetchFromTable([['/movie/1234', { body: await loadFixture('tmdb-movie-details.json') }]]);
+    await makeClient(fake).details('movie', 1234);
+
+    expect(decodeURIComponent(fake.lastUrl()!)).toContain('credits');
+    expect(fake.requests).toHaveLength(1);
+  });
+
+  it('ordena el reparto por importancia y lo acota', async () => {
+    const details = await loadFixture<TmdbDetails>('tmdb-movie-details.json');
+    const cast = extractCast(details);
+
+    expect(cast).toHaveLength(MAX_CAST);
+    expect(cast[0]).toBe('Irene Balboa');
+    // El cuarto de la lista declara `order: 3`, así que va antes que el de `order: 4`.
+    expect(cast.indexOf('Marta Oliván')).toBeLessThan(cast.indexOf('Diego Sanz'));
+    expect(cast).not.toContain('Sobrante Dos');
+  });
+
+  it('saca la dirección del equipo en las películas', async () => {
+    const details = await loadFixture<TmdbDetails>('tmdb-movie-details.json');
+    // Aparece dos veces en el equipo, con dos puestos: no debe duplicarse.
+    expect(extractDirectors(details)).toEqual(['Elena Vicens']);
+  });
+
+  it('en las series usa quien la crea, no el equipo', async () => {
+    const details = await loadFixture<TmdbDetails>('tmdb-tv-details.json');
+    expect(extractDirectors(details)).toEqual(['Nuria Calvo', 'Javier Sedano']);
+  });
+
+  it('sin créditos devuelve listas vacías, no huecos', () => {
+    expect(extractCast({ id: 1 })).toEqual([]);
+    expect(extractDirectors({ id: 1 })).toEqual([]);
+    expect(extractCast({ id: 1, credits: { cast: [{ order: 0 }] } })).toEqual([]);
+  });
+
+  it('el título mapeado los lleva', async () => {
+    const details = await loadFixture<TmdbDetails>('tmdb-movie-details.json');
+    const title = mapTitle({ mediaType: 'movie', details, now: NOW })!;
+
+    expect(title.cast).toContain('Irene Balboa');
+    expect(title.directors).toEqual(['Elena Vicens']);
   });
 });
 

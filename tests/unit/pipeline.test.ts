@@ -270,6 +270,25 @@ describe('revalidación de tráileres (FR-019)', () => {
   });
 });
 
+describe('datos de ejemplo y estrenos reales (FR-051)', () => {
+  it('la primera recopilación real retira los títulos de ejemplo', async () => {
+    const { buildSampleCatalog } = await import('../../src/core/domain/sample-catalog');
+    await catalog.upsertMany(buildSampleCatalog(NOW));
+    expect(catalog.hasSamples()).toBe(true);
+
+    const run = await runWeeklyAgent(makeDeps(await buildWorld()), { trigger: 'manual' });
+
+    expect(catalog.hasSamples()).toBe(false);
+    expect(catalog.get('tmdb:movie:1234')).not.toBeNull();
+    expect(run.issues.some((issue) => issue.message.includes('ejemplo'))).toBe(true);
+  });
+
+  it('sin ejemplos cargados no anota nada al respecto', async () => {
+    const run = await runWeeklyAgent(makeDeps(await buildWorld()), { trigger: 'manual' });
+    expect(run.issues.some((issue) => issue.message.includes('ejemplo'))).toBe(false);
+  });
+});
+
 describe('idempotencia entre semanas', () => {
   it('reejecutar la misma semana actualiza en vez de duplicar', async () => {
     const fake = await buildWorld();

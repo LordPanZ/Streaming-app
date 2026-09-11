@@ -7,6 +7,7 @@
  */
 
 import type { Title } from '../../shared/types';
+import { isSampleTitle } from '../domain/sample-catalog';
 import { JsonStore, type RecoverHandler } from './json-store';
 import { STORAGE_KEYS, type KeyValueStorage } from './storage';
 
@@ -160,6 +161,28 @@ export class CatalogStore {
     await this.persist();
   }
 
+  /** ¿Hay títulos de ejemplo cargados? (FR-051) */
+  hasSamples(): boolean {
+    return [...this.byId.values()].some(isSampleTitle);
+  }
+
+  /**
+   * Quita los títulos de ejemplo (FR-051). Se llama antes de persistir una
+   * recopilación real: los inventados no pueden mezclarse con los de verdad.
+   */
+  async removeSamples(): Promise<number> {
+    const samples = [...this.byId.values()].filter(isSampleTitle);
+    if (samples.length === 0) return 0;
+
+    for (const title of samples) {
+      this.unindexTitle(title);
+      this.byId.delete(title.id);
+    }
+    this.resort();
+    await this.persist();
+    return samples.length;
+  }
+
   /** Borra el catálogo (FR-039). */
   async clear(): Promise<void> {
     this.rebuildIndexes([]);
@@ -247,6 +270,10 @@ export function mergeTitle(existing: Title, incoming: Title): Title {
       fetchedAt: incoming.ratings.fetchedAt ?? existing.ratings.fetchedAt,
     },
     trailer: incoming.trailer ?? existing.trailer,
+    // Igual que con las notas: un dato bueno no se pierde porque esta vez la
+    // fuente no lo haya devuelto.
+    cast: incoming.cast.length > 0 ? incoming.cast : existing.cast,
+    directors: incoming.directors.length > 0 ? incoming.directors : existing.directors,
     updatedAt: incoming.updatedAt,
   };
 }

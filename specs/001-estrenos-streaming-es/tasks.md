@@ -109,6 +109,13 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T113** La prueba de humo entra en los tres flujos de integración continua
 - [x] **T114** `connect-src` de la política de contenido alineado con el inventario de ADR-010
 
+## Fase 11 — Contenido (v1.1.0)
+
+- [x] **T120** Reparto y dirección en la misma petición de la ficha *(FR-048)* → `core/providers/tmdb.ts`
+- [x] **T121** Enlace «Ver en <plataforma>» cuando la fuente lo da *(FR-049)* → `renderer/components/TitleDetail.tsx`
+- [x] **T122** Primer arranque guiado de tres pasos *(FR-050)* → `renderer/views/Onboarding.tsx`
+- [x] **T123** Catálogo de ejemplo con marca visible y borrado automático *(FR-051)* → `core/domain/sample-catalog.ts`
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

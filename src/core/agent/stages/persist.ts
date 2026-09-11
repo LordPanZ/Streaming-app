@@ -23,6 +23,16 @@ export async function stagePersist(ctx: PipelineContext, deps: AgentDeps): Promi
     });
 
     try {
+      // Lo inventado no puede convivir con lo real (FR-051).
+      const removed = await deps.catalog.removeSamples();
+      if (removed > 0) {
+        ctx.recorder.warn(
+          'persist',
+          'store',
+          `Se han retirado ${removed} títulos de ejemplo al llegar los estrenos reales.`,
+        );
+      }
+
       const outcome = await deps.catalog.upsertMany(ctx.titles);
       ctx.recorder.counts.created += outcome.created;
       ctx.recorder.counts.updated += outcome.updated;

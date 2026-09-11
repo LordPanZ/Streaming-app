@@ -304,7 +304,45 @@ Se distribuyen instaladores para Windows (`.exe`, NSIS), macOS (`.dmg`) y Linux
 La aplicación arranca y es navegable sin claves de API configuradas; solo la
 recopilación queda deshabilitada, con un aviso claro.
 
-### 5.8 Android
+### 5.8 Contenido de la ficha y primer arranque
+
+**FR-048 — Reparto y dirección.**
+La ficha muestra el reparto principal (hasta seis nombres) y quien dirige —o
+quien crea, si es una serie—, cuando la fuente los declara. Se obtienen en la
+misma petición que el resto de la ficha, sin consultas adicionales.
+
+- *Criterio:* Dada una película cuya fuente declara reparto y dirección, cuando
+  se abre su ficha, entonces aparecen ambos; y cuando no los declara, la sección
+  no aparece en lugar de mostrarse vacía.
+
+**FR-049 — Enlace a la plataforma.**
+Desde la ficha se puede abrir la página del título en la plataforma donde está
+disponible, en el navegador del sistema.
+
+- *Criterio:* Dado un título con enlace de plataforma, cuando el usuario pulsa
+  «Ver en <plataforma>», entonces se abre fuera de la aplicación (FR-020).
+
+**FR-050 — Primer arranque guiado.**
+Sin clave configurada y sin catálogo, la aplicación muestra una guía de tres
+pasos numerados con un enlace directo a la página donde se obtiene la clave de
+TMDB, un campo para pegarla y un botón para lanzar la primera recopilación.
+
+- *Criterio:* Dado un primer arranque, cuando el usuario pega una clave válida,
+  entonces se verifica, se guarda y el botón de recopilar queda habilitado sin
+  tener que navegar a ninguna otra pantalla.
+
+**FR-051 — Datos de ejemplo.**
+El usuario puede cargar un catálogo de ejemplo para probar los filtros y la
+valoración antes de configurar nada. Los títulos de ejemplo se distinguen con
+una marca visible y se pueden borrar de una vez.
+
+- *Criterio:* Dado un catálogo vacío, cuando el usuario carga los datos de
+  ejemplo, entonces aparecen títulos marcados como ejemplo y la aplicación
+  advierte de que no son estrenos reales.
+- *Criterio:* Dada una recopilación real posterior, cuando termina, entonces los
+  títulos de ejemplo ya no están: no se mezclan con los reales.
+
+### 5.9 Android
 
 **FR-043 — Aplicación para Android.**
 Se distribuye un APK instalable en un móvil Android, con las mismas funciones

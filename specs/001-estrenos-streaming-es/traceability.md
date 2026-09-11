@@ -63,6 +63,10 @@ automático nada que no lo esté.
 | FR-045 Interfaz adaptada al móvil | `renderer/styles/global.css` (consultas de medios) | Medición del ancho del documento a 412 px y a 360 px, sin desbordamiento | Automática (medida) + manual |
 | FR-046 Recopilación sin servicio en segundo plano | `core/app/app-service.ts` (`runIfDue`), `platform/capacitor/bootstrap.ts` | `unit/scheduler.test.ts` → «tres semanas vencidas producen una sola ejecución» | Automática |
 | FR-047 Claves de API en Android | `platform/capacitor/capacitor-secrets.ts` | `unit/capacitor-storage.test.ts` → bloque `CapacitorSecretsVault` (5 casos) | Automática |
+| FR-048 Reparto y dirección | `core/providers/tmdb.ts` (`extractCast`, `extractDirectors`) | `contract/tmdb.test.ts` → bloque «reparto y dirección» (6 casos) | Automática |
+| FR-049 Enlace a la plataforma | `renderer/components/TitleDetail.tsx` | Lista manual §3, punto 5; solo se ofrece si la plataforma trae enlace | Manual |
+| FR-050 Primer arranque guiado | `renderer/views/Onboarding.tsx`, `renderer/App.tsx` | Lista manual §3, punto 1 | Manual |
+| FR-051 Datos de ejemplo | `core/domain/sample-catalog.ts`, `core/agent/stages/persist.ts` | `unit/sample-catalog.test.ts` (14 casos) y `unit/pipeline.test.ts` → «la primera recopilación real retira los títulos de ejemplo» | Automática |
 
 ## 2. Requisitos no funcionales
 
@@ -86,9 +90,10 @@ automático nada que no lo esté.
 
 Se recorre antes de publicar una versión. Cada punto cita el requisito que cubre.
 
-1. **Primer arranque sin claves** (FR-034, FR-042). Borrar el directorio de datos
-   y abrir la aplicación: debe ser navegable, mostrar el aviso de que falta la
-   clave de TMDB con enlace a Ajustes, y tener «Actualizar ahora» deshabilitado.
+1. **Primer arranque sin claves** (FR-034, FR-042, FR-050). Borrar el directorio
+   de datos y abrir la aplicación: debe aparecer la guía de tres pasos, con el
+   enlace a la página de TMDB, el campo para pegar la clave y el botón para
+   cargar datos de ejemplo. «Actualizar ahora» sigue deshabilitado.
 2. **Configurar las claves** (FR-035, FR-036). Introducir ambas claves, pulsar
    «Verificar» en cada una y comprobar que el resultado es afirmativo y que el
    campo no muestra la clave completa, solo los cuatro últimos caracteres.
@@ -97,9 +102,10 @@ Se recorre antes de publicar una versión. Cada punto cita el requisito que cubr
    títulos en la vista de la semana.
 4. **Tarjeta** (FR-012, FR-013, FR-016). Comprobar en varias tarjetas que se ven
    los géneros, las notas por fuente y el botón de tráiler.
-5. **Ficha de detalle** (FR-032). Abrir un título: sinopsis, géneros,
-   plataformas, las cuatro notas con su fuente, el índice agregado con su nivel
-   de confianza y el panel de valoración.
+5. **Ficha de detalle** (FR-032, FR-048, FR-049). Abrir un título: sinopsis,
+   géneros, plataformas, reparto y dirección, las cuatro notas con su fuente, el
+   índice agregado con su nivel de confianza, «Ver en <plataforma>» si la fuente
+   da enlace, y el panel de valoración.
 6. **Valoración** (FR-021 a FR-027). Puntuar tres criterios, dejar el resto sin
    puntuar y comprobar que la nota personal solo pondera los puntuados y que
    aparece la diferencia frente a la crítica. Reiniciar la aplicación y

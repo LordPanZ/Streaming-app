@@ -2,8 +2,14 @@
   "adult": false,
   "backdrop_path": "/backdrop1.jpg",
   "genres": [
-    { "id": 18, "name": "Drama" },
-    { "id": 53, "name": "Suspense" }
+    {
+      "id": 18,
+      "name": "Drama"
+    },
+    {
+      "id": 53,
+      "name": "Suspense"
+    }
   ],
   "id": 1234,
   "original_language": "en",
@@ -53,18 +59,94 @@
       "ES": {
         "link": "https://www.themoviedb.org/movie/1234/watch?locale=ES",
         "flatrate": [
-          { "logo_path": "/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg", "provider_id": 8, "provider_name": "Netflix", "display_priority": 0 }
+          {
+            "logo_path": "/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg",
+            "provider_id": 8,
+            "provider_name": "Netflix",
+            "display_priority": 0
+          }
         ],
         "rent": [
-          { "logo_path": "/x.jpg", "provider_id": 3, "provider_name": "Google Play Movies", "display_priority": 5 }
+          {
+            "logo_path": "/x.jpg",
+            "provider_id": 3,
+            "provider_name": "Google Play Movies",
+            "display_priority": 5
+          }
         ]
       },
       "US": {
         "link": "https://www.themoviedb.org/movie/1234/watch?locale=US",
         "flatrate": [
-          { "logo_path": "/y.jpg", "provider_id": 15, "provider_name": "Hulu", "display_priority": 1 }
+          {
+            "logo_path": "/y.jpg",
+            "provider_id": 15,
+            "provider_name": "Hulu",
+            "display_priority": 1
+          }
         ]
       }
     }
+  },
+  "credits": {
+    "cast": [
+      {
+        "name": "Irene Balboa",
+        "order": 0,
+        "character": "Nora"
+      },
+      {
+        "name": "Tomás Rivas",
+        "order": 1,
+        "character": "Aleix"
+      },
+      {
+        "name": "Lucía Herrán",
+        "order": 2,
+        "character": "La archivera"
+      },
+      {
+        "name": "Diego Sanz",
+        "order": 4,
+        "character": "Editor"
+      },
+      {
+        "name": "Marta Oliván",
+        "order": 3,
+        "character": "Clara"
+      },
+      {
+        "name": "Pau Ferré",
+        "order": 5,
+        "character": "Vecino"
+      },
+      {
+        "name": "Sobrante Uno",
+        "order": 6,
+        "character": "Extra"
+      },
+      {
+        "name": "Sobrante Dos",
+        "order": 7,
+        "character": "Extra"
+      }
+    ],
+    "crew": [
+      {
+        "name": "Elena Vicens",
+        "job": "Director",
+        "department": "Directing"
+      },
+      {
+        "name": "Elena Vicens",
+        "job": "Writer",
+        "department": "Writing"
+      },
+      {
+        "name": "Ramón Peláez",
+        "job": "Director of Photography",
+        "department": "Camera"
+      }
+    ]
   }
 }

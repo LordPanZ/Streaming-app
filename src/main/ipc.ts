@@ -114,6 +114,8 @@ export function registerIpcHandlers(ctx: IpcContext): void {
     return service.applyImport(JSON.parse(await readFile(chosen, 'utf8')), payload);
   });
 
+  handle(IPC.dataSamplesLoad, () => service.loadSamples());
+  handle(IPC.dataSamplesClear, () => service.clearSamples());
   handle(IPC.dataWipe, () => service.dataWipe());
 
   handle(IPC.shellOpenExternal, async (payload) => {

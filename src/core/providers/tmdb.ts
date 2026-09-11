@@ -58,12 +58,20 @@ export interface TmdbDiscoverPage {
   results: TmdbDiscoverResult[];
 }
 
+export interface TmdbCredits {
+  cast?: Array<{ name?: string; order?: number }>;
+  crew?: Array<{ name?: string; job?: string; department?: string }>;
+}
+
 export interface TmdbDetails extends TmdbDiscoverResult {
   genres?: Array<{ id: number; name: string }>;
   runtime?: number | null;
   number_of_seasons?: number | null;
   external_ids?: { imdb_id?: string | null };
   videos?: { results?: VideoCandidate[] };
+  credits?: TmdbCredits;
+  /** Solo en series: quien la crea. */
+  created_by?: Array<{ name?: string }>;
   'watch/providers'?: {
     results?: Record<
       string,
@@ -155,14 +163,15 @@ export class TmdbClient {
 
   /**
    * Ficha completa en una sola petición (contrato §1.3). `append_to_response`
-   * evita cuatro viajes por título, que con 300 títulos son 1 200 peticiones
-   * de menos por ejecución (Art. V.1).
+   * evita cinco viajes por título, que con 300 títulos son 1 500 peticiones de
+   * menos por ejecución (Art. V.1). Por eso el reparto y la dirección (FR-048)
+   * no cuestan ni una consulta adicional: vienen en la misma respuesta.
    */
   async details(mediaType: MediaType, tmdbId: number): Promise<TmdbDetails> {
     const path = mediaType === 'movie' ? 'movie' : 'tv';
     const url = this.url(`/${path}/${tmdbId}`, {
       language: this.language,
-      append_to_response: 'external_ids,videos,watch/providers',
+      append_to_response: 'external_ids,videos,watch/providers,credits',
     });
     return this.http.getJson<TmdbDetails>(url, {
       cacheTtlMs: this.cacheTtlMs,
@@ -263,6 +272,40 @@ export function extractPlatforms(details: TmdbDetails, region = 'ES'): PlatformR
   return [...seen.values()];
 }
 
+/** Cuántos nombres del reparto se guardan (FR-048). */
+export const MAX_CAST = 6;
+
+/** Reparto principal, en el orden de importancia que declara la fuente. */
+export function extractCast(details: TmdbDetails): string[] {
+  return [...(details.credits?.cast ?? [])]
+    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+    .map((person) => person.name?.trim())
+    .filter((name): name is string => Boolean(name))
+    .slice(0, MAX_CAST);
+}
+
+/**
+ * Dirección. En las series la fuente no usa el puesto «Director» sino el campo
+ * de creación, así que se mira primero ahí; si no, se recurre al equipo.
+ */
+export function extractDirectors(details: TmdbDetails): string[] {
+  const creators = (details.created_by ?? [])
+    .map((person) => person.name?.trim())
+    .filter((name): name is string => Boolean(name));
+  if (creators.length > 0) return dedupe(creators);
+
+  const directors = (details.credits?.crew ?? [])
+    .filter((person) => person.job === 'Director' || person.job === 'Series Director')
+    .map((person) => person.name?.trim())
+    .filter((name): name is string => Boolean(name));
+
+  return dedupe(directors).slice(0, 3);
+}
+
+function dedupe(names: readonly string[]): string[] {
+  return [...new Set(names)];
+}
+
 export function tmdbRating(entry: TmdbDiscoverResult): CriticRatings {
   const ratings = emptyCriticRatings();
   // `vote_average` llega a 0 tanto cuando la nota es 0 como cuando no hay votos.
@@ -323,6 +366,8 @@ export function mapTitle(input: MapTitleInput): Title | null {
     imdbId: normalizeImdbId(details.external_ids?.imdb_id),
     ratings: tmdbRating(details),
     trailer: selectTrailer(videos, name, year),
+    cast: extractCast(details),
+    directors: extractDirectors(details),
     firstSeenAt: stamp,
     updatedAt: stamp,
   };

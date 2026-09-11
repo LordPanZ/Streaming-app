@@ -27,6 +27,8 @@ export function makeTitle(overrides: Partial<Title> = {}): Title {
     imdbId: null,
     ratings: emptyCriticRatings(),
     trailer: null,
+    cast: [],
+    directors: [],
     firstSeenAt: '2026-09-07T09:00:00.000Z',
     updatedAt: '2026-09-07T09:00:00.000Z',
   };

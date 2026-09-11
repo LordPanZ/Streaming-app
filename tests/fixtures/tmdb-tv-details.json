@@ -11,16 +11,52 @@
   "poster_path": "/tvposter.jpg",
   "vote_average": 8.1,
   "vote_count": 340,
-  "external_ids": { "imdb_id": "tt1122334" },
-  "videos": { "results": [] },
+  "external_ids": {
+    "imdb_id": "tt1122334"
+  },
+  "videos": {
+    "results": []
+  },
   "watch/providers": {
     "results": {
       "ES": {
         "link": "https://www.themoviedb.org/tv/4321/watch?locale=ES",
         "free": [
-          { "logo_path": "/kMzOefLmyGdvQPUdnCJfeSTFPXH.jpg", "provider_id": 62, "provider_name": "atresplayer", "display_priority": 9 }
+          {
+            "logo_path": "/kMzOefLmyGdvQPUdnCJfeSTFPXH.jpg",
+            "provider_id": 62,
+            "provider_name": "atresplayer",
+            "display_priority": 9
+          }
         ]
       }
     }
+  },
+  "created_by": [
+    {
+      "name": "Nuria Calvo"
+    },
+    {
+      "name": "Javier Sedano"
+    }
+  ],
+  "credits": {
+    "cast": [
+      {
+        "name": "Ana Trueba",
+        "order": 0
+      },
+      {
+        "name": "Óscar Mena",
+        "order": 1
+      }
+    ],
+    "crew": [
+      {
+        "name": "Alguien Más",
+        "job": "Producer",
+        "department": "Production"
+      }
+    ]
   }
 }

@@ -42,6 +42,7 @@ export function SettingsView({
         <ScheduleSection settings={settings} onUpdate={onUpdate} />
         <PlatformsSection settings={settings} onUpdate={onUpdate} />
         <CriteriaSection settings={settings} onUpdate={onUpdate} />
+        <SamplesSection onReload={onReload} />
         <DataSection onReload={onReload} />
       </div>
     </>
@@ -434,6 +435,66 @@ function CriteriaSection({
 }
 
 // ---------------------------------------------------------------------------
+
+/** Datos de ejemplo (FR-051). */
+function SamplesSection({ onReload }: { onReload: () => Promise<void> }) {
+  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function run(action: () => Promise<string>): Promise<void> {
+    setBusy(true);
+    try {
+      setMessage(await action());
+      await onReload();
+    } catch (caught) {
+      setMessage(describeApiError(caught));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="section">
+      <h4 className="section__title">Datos de ejemplo</h4>
+      <p className="field__hint" style={{ marginBottom: 12 }}>
+        Diez títulos inventados para probar los filtros y la valoración sin configurar nada. Van
+        marcados como ejemplo y desaparecen solos en cuanto llega la primera recopilación real, para
+        que no se mezclen con los estrenos de verdad.
+      </p>
+      <div className="field__row">
+        <button
+          type="button"
+          className="btn"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              const result = await unwrap(api.data.loadSamples());
+              return `Cargados ${result.loaded} títulos de ejemplo.`;
+            })
+          }
+        >
+          Cargar datos de ejemplo
+        </button>
+        <button
+          type="button"
+          className="btn btn--ghost"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              const result = await unwrap(api.data.clearSamples());
+              return result.removed > 0
+                ? `Retirados ${result.removed} títulos de ejemplo.`
+                : 'No había ningún título de ejemplo.';
+            })
+          }
+        >
+          Quitar los de ejemplo
+        </button>
+      </div>
+      {message && <p className="field__hint" style={{ marginTop: 10 }}>{message}</p>}
+    </section>
+  );
+}
 
 function DataSection({ onReload }: { onReload: () => Promise<void> }) {
   const [message, setMessage] = useState<string | null>(null);

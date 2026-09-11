@@ -75,6 +75,15 @@ export interface Title {
   imdbId: string | null;
   ratings: CriticRatings;
   trailer: Trailer | null;
+  /** Reparto principal, hasta seis nombres. Vacío si la fuente no lo declara. */
+  cast: string[];
+  /** Dirección; en las series, quien la crea. */
+  directors: string[];
+  /**
+   * Marca de título de ejemplo (FR-051). Ausente en todo lo que venga de una
+   * recopilación real: así la interfaz nunca puede confundir uno con otro.
+   */
+  sample?: boolean;
   firstSeenAt: string;
   updatedAt: string;
 }
