@@ -18,13 +18,14 @@
     "build:main": "node scripts/build-main.mjs",
     "package": "npm run build && electron-builder --publish never",
     "package:all": "npm run build && electron-builder -mwl --publish never",
-    "agent": "node --experimental-strip-types scripts/agent-cli.ts",
+    "agent": "npm run build:main && node dist/main/agent-cli.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src scripts tests --ext .ts,.tsx",
-    "check": "npm run typecheck && npm run lint && npm test"
+    "check": "npm run typecheck && npm run lint && npm test",
+    "build:main:watch": "node scripts/build-main.mjs --watch"
   },
   "dependencies": {
     "react": "^18.3.1",
