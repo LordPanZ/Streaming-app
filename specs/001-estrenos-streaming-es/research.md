@@ -230,3 +230,105 @@ parámetro.
 **Consecuencia.** Un flujo de trabajo de integración continua puede ejecutar el
 agente semanalmente y publicar el resultado, sin código específico y sin riesgo
 de divergencia de comportamiento entre ambos modos.
+
+
+---
+
+## ADR-012 — Capacitor para Android, reutilizando núcleo e interfaz
+
+**Contexto.** FR-043 exige un APK instalable. FR-044 exige que el PC y el móvil
+no diverjan. Electron no corre en Android.
+
+**Decisión.** Envolver la **misma** interfaz de React con Capacitor y ejecutar el
+**mismo** núcleo dentro de la vista web. Electron se mantiene para el PC.
+
+```
+            src/core  +  src/renderer        (idénticos en las dos)
+                     │
+        ┌────────────┴────────────┐
+   PC: Electron                Android: Capacitor
+   proceso principal + IPC      todo en la vista web, sin IPC
+   almacén en sistema de        almacén en el sistema de archivos
+   archivos de Node             del contenedor
+   claves con safeStorage       claves en almacenamiento privado
+```
+
+**Alternativas descartadas.**
+- *React Native*: obligaría a reescribir la interfaz entera. Tirar a la basura
+  una interfaz que ya funciona para ganar unos milisegundos de arranque no sale
+  a cuenta en una aplicación que se consulta una vez por semana.
+- *Aplicación web progresiva*: no da un archivo instalable, y deja las
+  peticiones a merced de las políticas de origen cruzado de los terceros, sin
+  alternativa si alguno deja de permitirlas.
+- *Aplicación nativa en Kotlin*: duplicaría el dominio entero, que es justo lo
+  que FR-044 prohíbe.
+
+**Consecuencia.** El proceso principal de Electron deja de contener lógica: pasa
+a ser un adaptador. La lógica que antes vivía en los manejadores IPC se mueve a
+un servicio del núcleo que ambas plataformas invocan.
+
+---
+
+## ADR-013 — El almacenamiento entra por una interfaz, no por `node:fs`
+
+**Contexto.** El Art. II prohíbe que el dominio conozca rutas, pero
+`json-store.ts` importaba `node:fs`, `node:path` y `node:crypto`. En una vista
+web de Android esos módulos no existen.
+
+**Decisión.** Definir `KeyValueStorage` —leer, escribir y borrar un documento de
+texto por clave— e inyectarla. Cada plataforma aporta su implementación:
+
+| Plataforma | Implementación | Garantía de atomicidad |
+|---|---|---|
+| Node (Electron y consola) | Archivos con temporal + `fsync` + `rename` | Sí, la de FR-040 |
+| Android (Capacitor) | Sistema de archivos del contenedor, directorio de datos | Escritura completa por llamada; sin `rename` atómico |
+| Pruebas | En memoria | Determinista |
+
+**Sobre la atomicidad en Android.** El contenedor no expone `rename`, así que la
+escritura no es atómica en el mismo sentido. Se mitiga escribiendo primero una
+copia `<clave>.bak` y verificando el contenido al leer: si el archivo principal
+está corrupto, se recupera la copia. No es equivalente, y se declara como tal
+en lugar de afirmar que FR-040 se cumple igual en las dos plataformas.
+
+**`node:crypto` fuera del núcleo.** `randomBytes` se sustituye por
+`crypto.getRandomValues`, que es estándar y existe tanto en Node como en
+cualquier navegador. No hacía falta criptografía: solo un identificador que no
+chocara.
+
+---
+
+## ADR-014 — Peticiones por el cliente HTTP nativo en Android
+
+**Contexto.** Una vista web aplica las políticas de origen cruzado. TMDB y OMDb
+hoy las permiten, pero apoyar la aplicación en que un tercero siga permitiendo
+peticiones desde cualquier origen es construir sobre algo que no controlamos.
+
+**Decisión.** Activar el cliente HTTP nativo de Capacitor, que sustituye a
+`fetch` en la vista web por una implementación nativa que no pasa por esas
+políticas.
+
+**Encaje con lo que ya había.** `HttpClient` recibe `fetch` inyectado desde el
+primer día (Art. II.2), así que esto no toca ni una línea del núcleo: solo
+cambia qué función se le pasa al construirlo.
+
+---
+
+## ADR-015 — En Android no hay ejecución en segundo plano
+
+**Contexto.** FR-001 pide una ejecución semanal. Android mata los procesos en
+segundo plano de forma agresiva y un trabajo programado exigiría permisos que
+asustan al usuario para algo que no lo merece.
+
+**Decisión.** En el móvil no se programa nada en segundo plano: se aprovecha el
+mecanismo de recuperación que ya existía (ADR-007). Al abrir la aplicación o al
+volver a ella, se comprueba si venció `nextRunAt` y, si es así, se ejecuta una
+vez.
+
+**Por qué funciona.** El planificador nunca dependió de un temporizador vivo,
+sino de un instante persistido. El caso «la aplicación estaba cerrada» ya estaba
+resuelto y probado (FR-002); en Android es el caso normal en lugar de la
+excepción.
+
+**Consecuencia.** Si el usuario no abre la aplicación en tres semanas, al
+abrirla obtiene una sola recopilación con la ventana configurada, no tres. Se
+documenta en la interfaz para que no sorprenda.

@@ -21,28 +21,29 @@ import { CatalogStore } from '../core/store/catalog';
 import { RatingsStore } from '../core/store/ratings';
 import { RunsStore } from '../core/store/runs';
 import { SettingsStore } from '../core/store/settings';
-import { atomicWriteJson } from '../core/store/json-store';
 import { CatalogService } from '../core/service/catalog-service';
 import { runWeeklyAgent, type RunOptions } from '../core/agent/pipeline';
 import { advanceSchedule, dueReason, ensureScheduled } from '../core/agent/scheduler';
 import type { AgentDeps } from '../core/agent/context';
-import { readFile } from 'node:fs/promises';
-import { resolvePaths, type AppPaths } from './paths';
+import { STORAGE_KEYS, type KeyValueStorage } from '../core/store/storage';
 
 export interface KeyProvider {
   get(name: 'tmdb' | 'omdb'): string | null;
 }
 
 export interface ContainerOptions {
-  dataDir: string;
+  /** Almacenamiento de la plataforma (ADR-013). */
+  storage: KeyValueStorage;
   keys: KeyProvider;
   now?: () => Date;
-  /** Se avisa cuando un archivo corrupto se aparta, para poder registrarlo. */
+  /** `fetch` de la plataforma: el de Node en el PC, el nativo en Android. */
+  fetchImpl?: typeof globalThis.fetch;
+  /** Se avisa cuando un documento corrupto se aparta, para poder registrarlo. */
   onRecover?: (message: string) => void;
 }
 
 export class AppContainer {
-  readonly paths: AppPaths;
+  readonly storage: KeyValueStorage;
   readonly catalog: CatalogStore;
   readonly ratings: RatingsStore;
   readonly settings: SettingsStore;
@@ -56,22 +57,25 @@ export class AppContainer {
   private running = false;
 
   constructor(options: ContainerOptions) {
-    this.paths = resolvePaths(options.dataDir);
+    this.storage = options.storage;
     this.keys = options.keys;
     this.now = options.now ?? (() => new Date());
 
     const onRecover = options.onRecover
-      ? (info: { filePath: string; reason: string }) =>
-          options.onRecover?.(`Archivo dañado apartado: ${info.filePath} (${info.reason})`)
+      ? (info: { key: string; reason: string }) =>
+          options.onRecover?.(`Documento dañado apartado: ${info.key} (${info.reason})`)
       : undefined;
 
-    this.catalog = new CatalogStore(this.paths.titles, onRecover);
-    this.ratings = new RatingsStore(this.paths.ratings, onRecover);
-    this.settings = new SettingsStore(this.paths.settings, onRecover);
-    this.runs = new RunsStore(this.paths.runs, onRecover);
+    this.catalog = new CatalogStore(this.storage, onRecover);
+    this.ratings = new RatingsStore(this.storage, onRecover);
+    this.settings = new SettingsStore(this.storage, onRecover);
+    this.runs = new RunsStore(this.storage, onRecover);
 
     this.cache = new ResponseCache(() => this.now().getTime());
-    this.http = new HttpClient({ cache: this.cache });
+    this.http = new HttpClient({
+      cache: this.cache,
+      ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}),
+    });
 
     this.service = new CatalogService(this.catalog, this.ratings, () => this.settings.get());
   }
@@ -169,8 +173,9 @@ export class AppContainer {
 
   private async loadCache(): Promise<void> {
     try {
-      const raw = JSON.parse(await readFile(this.paths.cache, 'utf8')) as unknown;
-      const restored = ResponseCache.fromSnapshot(raw, () => this.now().getTime());
+      const raw = await this.storage.read(STORAGE_KEYS.cache);
+      if (raw === null) return;
+      const restored = ResponseCache.fromSnapshot(JSON.parse(raw), () => this.now().getTime());
       for (const [url, value] of Object.entries(restored.toSnapshot().entries)) {
         this.cache.set(url, value.value, value.expiresAt - this.now().getTime());
       }
@@ -181,7 +186,10 @@ export class AppContainer {
 
   async saveCache(): Promise<void> {
     try {
-      await atomicWriteJson(this.paths.cache, this.cache.toSnapshot());
+      await this.storage.write(
+        STORAGE_KEYS.cache,
+        JSON.stringify(this.cache.toSnapshot()),
+      );
     } catch {
       // La caché es prescindible por definición: si no se puede guardar, no
       // vale la pena molestar al usuario.

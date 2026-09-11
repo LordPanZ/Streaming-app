@@ -5,6 +5,7 @@
 
 import type { AgentRun, AgentRunSummary } from '../../shared/types';
 import { JsonStore, type RecoverHandler } from './json-store';
+import { STORAGE_KEYS, type KeyValueStorage } from './storage';
 
 export const MAX_RUNS = 50;
 export const RUNS_SCHEMA_VERSION = 1;
@@ -21,9 +22,10 @@ function emptyRuns(): RunsData {
 export class RunsStore {
   private readonly store: JsonStore<RunsData>;
 
-  constructor(filePath: string, onRecover?: RecoverHandler) {
+  constructor(storage: KeyValueStorage, onRecover?: RecoverHandler) {
     this.store = new JsonStore<RunsData>({
-      filePath,
+      storage,
+      key: STORAGE_KEYS.runs,
       defaults: emptyRuns,
       revive: (raw, defaults) => {
         if (typeof raw !== 'object' || raw === null) return defaults;

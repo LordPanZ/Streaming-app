@@ -11,7 +11,8 @@ import { CHECK_INTERVAL_MS } from '../core/agent/scheduler';
 import { AppContainer } from './container';
 import { registerIpcHandlers } from './ipc';
 import { SecretsManager } from './secrets';
-import { DATA_FOLDER, resolvePaths } from './paths';
+import { NodeFileStorage } from '../platform/node/node-storage';
+import { DATA_FOLDER } from './paths';
 
 /**
  * Ruta de datos fijada antes de nada: sin esto, Electron la deduce del nombre
@@ -105,13 +106,13 @@ async function checkSchedule(): Promise<void> {
 
 async function bootstrap(): Promise<void> {
   const dataDir = join(app.getPath('userData'), DATA_FOLDER);
-  const paths = resolvePaths(dataDir);
+  const storage = new NodeFileStorage(dataDir);
 
-  const secrets = new SecretsManager(paths.secrets);
+  const secrets = new SecretsManager(join(dataDir, 'secrets.bin'));
   await secrets.load();
 
   container = new AppContainer({
-    dataDir,
+    storage,
     keys: { get: (name) => secrets.get(name) },
     onRecover: (message) => console.warn('[almacén]', message),
   });

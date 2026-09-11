@@ -18,7 +18,7 @@ cálculo.
 
 ## 2. Qué se construye
 
-Una **aplicación de escritorio descargable** que:
+Una **aplicación descargable para PC y para móvil Android** que:
 
 1. Ejecuta un **agente automático una vez por semana** que recopila los estrenos
    de la semana en las principales plataformas de streaming en España.
@@ -31,9 +31,12 @@ Una **aplicación de escritorio descargable** que:
 ## 3. Fuera de alcance (v1)
 
 - Reproducir contenido o integrarse con las cuentas de las plataformas.
-- Aplicación móvil o web pública.
+- Publicación en Google Play o en la App Store (el APK se instala directamente).
+- Aplicación para iOS.
 - Recomendaciones personalizadas por IA / motor de similitud.
-- Perfiles múltiples o sincronización entre dispositivos.
+- Sincronización automática entre el PC y el móvil. Se puede llevar los datos de
+  uno a otro con la exportación e importación (FR-037, FR-038), pero no hay
+  servidor que los sincronice solo (Art. III.2).
 - Idiomas de interfaz distintos del castellano.
 
 ## 4. Personas
@@ -293,13 +296,56 @@ escritura es atómica: un corte de corriente no deja el almacén corrupto.
 
 ### 5.7 Distribución
 
-**FR-041 — Aplicación descargable.**
+**FR-041 — Aplicación descargable para PC.**
 Se distribuyen instaladores para Windows (`.exe`, NSIS), macOS (`.dmg`) y Linux
 (`AppImage` y `.deb`), generados desde el mismo código fuente.
 
 **FR-042 — Primer arranque sin claves.**
 La aplicación arranca y es navegable sin claves de API configuradas; solo la
 recopilación queda deshabilitada, con un aviso claro.
+
+### 5.8 Android
+
+**FR-043 — Aplicación para Android.**
+Se distribuye un APK instalable en un móvil Android, con las mismas funciones
+que la versión de PC: recopilación semanal, notas, géneros, tráiler, marcar
+como visto y valorar por criterios.
+
+- *Criterio:* Dado un móvil con Android 8 o superior, cuando se instala el APK y
+  se configura la clave de TMDB, entonces la recopilación funciona y los
+  estrenos aparecen igual que en el PC.
+
+**FR-044 — Misma lógica en ambas plataformas.**
+El PC y Android comparten el núcleo y la interfaz. Solo cambian las piezas que
+dependen del sistema: almacenamiento, peticiones de red y guardado de claves.
+
+- *Criterio:* Dado un cambio en el cálculo de la nota personal, cuando se
+  compila para ambas plataformas, entonces ninguna de las dos necesita un cambio
+  adicional para comportarse igual.
+
+**FR-045 — Interfaz adaptada al móvil.**
+En pantallas estrechas la interfaz se reorganiza: navegación inferior en lugar
+de barra lateral, rejilla de dos columnas, ficha a pantalla completa y controles
+con área táctil suficiente.
+
+- *Criterio:* Dada una pantalla de 360 px de ancho, cuando se abre la lista de
+  estrenos, entonces no hay desbordamiento horizontal y todos los controles son
+  pulsables con el dedo.
+
+**FR-046 — Recopilación en Android sin servicio en segundo plano.**
+Android restringe la ejecución en segundo plano, así que en el móvil la
+ejecución vencida se lanza al abrir la aplicación o al volver a ella, nunca con
+el teléfono guardado en el bolsillo. El usuario puede lanzarla a mano en
+cualquier momento.
+
+- *Criterio:* Dado un `nextRunAt` vencido, cuando el usuario vuelve a la
+  aplicación tras tenerla en segundo plano, entonces se lanza una única
+  ejecución.
+
+**FR-047 — Claves de API en Android.**
+Las claves se guardan en el almacenamiento privado de la aplicación, al que no
+acceden otras aplicaciones. La interfaz indica con qué nivel de protección están
+guardadas en cada plataforma, sin prometer más de lo que hay.
 
 ---
 
@@ -317,6 +363,8 @@ recopilación queda deshabilitada, con un aviso claro.
 | **NFR-008** | Toda entrada IPC se valida antes de usarse | Pruebas de los validadores con entradas inválidas |
 | **NFR-009** | Ninguna clave de API aparece en logs, informes ni exportaciones | Prueba que serializa un informe con claves presentes y comprueba su ausencia |
 | **NFR-010** | Sin telemetría ni peticiones a servidores propios | Inventario de destinos de red documentado en `research.md` |
+| **NFR-011** | El núcleo no usa APIs exclusivas de Node: se ejecuta igual en Node y en un navegador | Prueba que falla si aparece un `import` de `node:` en `src/core` |
+| **NFR-012** | La interfaz funciona desde 360 px de ancho sin desbordamiento horizontal | Prueba de los puntos de ruptura y revisión manual en móvil |
 
 ---
 
@@ -332,6 +380,9 @@ recopilación queda deshabilitada, con un aviso claro.
   público, que no requiere clave.
 - **A-004** "Estreno" significa alta en el catálogo de la plataforma en España
   según la fuente de datos, no fecha de producción.
+- **A-005** En Android las peticiones salen por el cliente HTTP nativo del
+  contenedor, no por el del navegador incrustado, de modo que las políticas de
+  origen cruzado de los terceros no afectan a la aplicación.
 
 ## 8. Riesgos
 

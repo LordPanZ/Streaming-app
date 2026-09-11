@@ -1,10 +1,8 @@
 /** FR-037, FR-038, FR-039 · exportación, importación y borrado */
 
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { CatalogStore } from '../../src/core/store/catalog';
+import { MemoryStorage } from '../../src/core/store/storage';
 import { RatingsStore } from '../../src/core/store/ratings';
 import { RunsStore } from '../../src/core/store/runs';
 import { SettingsStore } from '../../src/core/store/settings';
@@ -19,16 +17,16 @@ import {
 } from '../../src/core/store/transfer';
 import { makeTitle, makeUserRating } from '../helpers/factories';
 
-let dir: string;
+let storage: MemoryStorage;
 let stores: TransferStores;
 
 beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), 'estrenos-transfer-'));
+  storage = new MemoryStorage();
   stores = {
-    catalog: new CatalogStore(join(dir, 'titles.json')),
-    ratings: new RatingsStore(join(dir, 'ratings.json')),
-    settings: new SettingsStore(join(dir, 'settings.json')),
-    runs: new RunsStore(join(dir, 'runs.json')),
+    catalog: new CatalogStore(storage),
+    ratings: new RatingsStore(storage),
+    settings: new SettingsStore(storage),
+    runs: new RunsStore(storage),
   };
   await Promise.all([
     stores.catalog.load(),
@@ -38,9 +36,6 @@ beforeEach(async () => {
   ]);
 });
 
-afterEach(async () => {
-  await rm(dir, { recursive: true, force: true });
-});
 
 describe('buildExportBundle (FR-037)', () => {
   it('incluye catálogo, valoraciones, ajustes e historial', async () => {

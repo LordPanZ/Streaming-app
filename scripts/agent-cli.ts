@@ -11,6 +11,7 @@
 import { AppContainer } from '../src/main/container';
 import type { RunOptions } from '../src/core/agent/pipeline';
 import { PLATFORMS } from '../src/core/domain/platforms';
+import { NodeFileStorage } from '../src/platform/node/node-storage';
 
 interface CliOptions {
   dataDir: string;
@@ -105,7 +106,7 @@ async function main(): Promise<number> {
   }
 
   const container = new AppContainer({
-    dataDir: options.dataDir,
+    storage: new NodeFileStorage(options.dataDir),
     keys: { get: (name) => (name === 'tmdb' ? tmdbKey : omdbKey) || null },
     onRecover: (message) => console.warn('[almacén]', message),
   });

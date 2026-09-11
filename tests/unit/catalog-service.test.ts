@@ -1,10 +1,8 @@
 /** FR-015, FR-027, FR-028 a FR-033 · servicio de consulta del catálogo */
 
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { CatalogStore } from '../../src/core/store/catalog';
+import { MemoryStorage } from '../../src/core/store/storage';
 import { RatingsStore } from '../../src/core/store/ratings';
 import { CatalogService, resolveWeek } from '../../src/core/service/catalog-service';
 import { defaultSettings } from '../../src/core/store/settings';
@@ -13,22 +11,19 @@ import { makeRatings, makeTitle } from '../helpers/factories';
 
 const NOW = new Date(2026, 8, 10); // jueves de la semana 2026-W37
 
-let dir: string;
+let storage: MemoryStorage;
 let catalog: CatalogStore;
 let ratings: RatingsStore;
 let service: CatalogService;
 
 beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), 'estrenos-service-'));
-  catalog = new CatalogStore(join(dir, 'titles.json'));
-  ratings = new RatingsStore(join(dir, 'ratings.json'));
+  storage = new MemoryStorage();
+  catalog = new CatalogStore(storage);
+  ratings = new RatingsStore(storage);
   await Promise.all([catalog.load(), ratings.load()]);
   service = new CatalogService(catalog, ratings, () => defaultSettings());
 });
 
-afterEach(async () => {
-  await rm(dir, { recursive: true, force: true });
-});
 
 describe('resolveWeek', () => {
   it('traduce «current» a la semana en curso', () => {

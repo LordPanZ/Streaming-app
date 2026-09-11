@@ -8,6 +8,7 @@
 
 import type { Title } from '../../shared/types';
 import { JsonStore, type RecoverHandler } from './json-store';
+import { STORAGE_KEYS, type KeyValueStorage } from './storage';
 
 export interface CatalogData {
   schemaVersion: number;
@@ -43,9 +44,10 @@ export class CatalogStore {
   /** Identificadores ordenados por fecha de disponibilidad, de más nueva a más vieja. */
   private sortedIds: string[] = [];
 
-  constructor(filePath: string, onRecover?: RecoverHandler) {
+  constructor(storage: KeyValueStorage, onRecover?: RecoverHandler) {
     this.store = new JsonStore<CatalogData>({
-      filePath,
+      storage,
+      key: STORAGE_KEYS.titles,
       defaults: emptyCatalog,
       revive: (raw, defaults) => reviveCatalog(raw, defaults),
       ...(onRecover ? { onRecover } : {}),

@@ -5,7 +5,6 @@
  * ninguna URL con `api_key` acabe en `runs.json`.
  */
 
-import { randomBytes } from 'node:crypto';
 import type {
   AgentRun,
   HttpMetrics,
@@ -15,11 +14,12 @@ import type {
   StageName,
   StageReport,
 } from '../../shared/types';
+import { randomHex } from '../domain/ids';
 import type { DateWindow } from '../domain/weeks';
 import { sanitizeMessage } from '../providers/http';
 
 export function newRunId(now: Date): string {
-  return `run-${now.toISOString().replace(/[:.]/g, '-')}-${randomBytes(3).toString('hex')}`;
+  return `run-${now.toISOString().replace(/[:.]/g, '-')}-${randomHex(3)}`;
 }
 
 /** Copia de la incidencia con el mensaje libre de claves de API. */

@@ -1,10 +1,12 @@
 /** FR-011, FR-012, FR-021, FR-025, FR-033, FR-040, NFR-006 · capa de persistencia */
 
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { atomicWriteJson, JsonStore } from '../../src/core/store/json-store';
+import { JsonStore } from '../../src/core/store/json-store';
+import { MemoryStorage, STORAGE_KEYS } from '../../src/core/store/storage';
+import { NodeFileStorage, atomicWriteFile } from '../../src/platform/node/node-storage';
 import { CatalogStore, mergeTitle } from '../../src/core/store/catalog';
 import { buildWatchedStats, RatingsStore } from '../../src/core/store/ratings';
 import { SettingsStore, defaultSettings, sanitizeSettings } from '../../src/core/store/settings';
@@ -23,65 +25,96 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-describe('JsonStore (FR-040)', () => {
-  it('arranca con los valores por defecto cuando no hay archivo', async () => {
-    const store = new JsonStore({ filePath: join(dir, 'x.json'), defaults: () => ({ n: 1 }) });
-    expect(await store.load()).toEqual({ n: 1 });
+describe('JsonStore sobre almacenamiento (ADR-013)', () => {
+  function store<T>(storage: MemoryStorage | NodeFileStorage, defaults: () => T, onRecover?: never) {
+    return new JsonStore<T>({ storage, key: 'prueba', defaults, ...(onRecover ? { onRecover } : {}) });
+  }
+
+  it('arranca con los valores por defecto cuando no hay documento', async () => {
+    expect(await store(new MemoryStorage(), () => ({ n: 1 })).load()).toEqual({ n: 1 });
   });
 
-  it('persiste y relee', async () => {
-    const path = join(dir, 'x.json');
-    const store = new JsonStore({ filePath: path, defaults: () => ({ n: 1 }) });
-    await store.load();
-    await store.save({ n: 42 });
+  it('persiste y relee a través del almacenamiento', async () => {
+    const storage = new MemoryStorage();
+    const first = store(storage, () => ({ n: 1 }));
+    await first.load();
+    await first.save({ n: 42 });
 
-    const reloaded = new JsonStore({ filePath: path, defaults: () => ({ n: 1 }) });
-    expect(await reloaded.load()).toEqual({ n: 42 });
+    expect(await store(storage, () => ({ n: 1 })).load()).toEqual({ n: 42 });
   });
 
-  it('escribe de forma atómica: no deja archivos temporales', async () => {
-    const path = join(dir, 'x.json');
-    await atomicWriteJson(path, { a: 1 });
-    const { readdir } = await import('node:fs/promises');
-    const files = await readdir(dir);
-    expect(files).toEqual(['x.json']);
-    expect(JSON.parse(await readFile(path, 'utf8'))).toEqual({ a: 1 });
-  });
-
-  it('aparta un archivo corrupto y arranca por defecto en vez de romperse', async () => {
-    const path = join(dir, 'x.json');
-    await writeFile(path, '{esto no es json', 'utf8');
+  it('aparta un documento corrupto y arranca por defecto en vez de romperse', async () => {
+    const storage = new MemoryStorage();
+    await storage.write('prueba', '{esto no es json');
 
     const recoveries: string[] = [];
-    const store = new JsonStore({
-      filePath: path,
+    const subject = new JsonStore({
+      storage,
+      key: 'prueba',
       defaults: () => ({ n: 1 }),
-      onRecover: (info) => recoveries.push(info.backupPath),
+      onRecover: (info) => recoveries.push(info.backupKey),
     });
 
-    expect(await store.load()).toEqual({ n: 1 });
+    expect(await subject.load()).toEqual({ n: 1 });
     expect(recoveries).toHaveLength(1);
-    expect(await readFile(recoveries[0]!, 'utf8')).toBe('{esto no es json');
+    expect(await storage.read(recoveries[0]!)).toBe('{esto no es json');
   });
 
-  it('serializa las escrituras concurrentes sin corromper el archivo', async () => {
-    const path = join(dir, 'x.json');
-    const store = new JsonStore<{ n: number }>({ filePath: path, defaults: () => ({ n: 0 }) });
-    await store.load();
+  it('serializa las escrituras concurrentes', async () => {
+    const storage = new MemoryStorage();
+    const subject = store<{ n: number }>(storage, () => ({ n: 0 }));
+    await subject.load();
 
-    await Promise.all(Array.from({ length: 25 }, (_, i) => store.save({ n: i })));
-    expect(JSON.parse(await readFile(path, 'utf8'))).toEqual({ n: 24 });
+    await Promise.all(Array.from({ length: 25 }, (_, i) => subject.save({ n: i })));
+    expect(JSON.parse((await storage.read('prueba'))!)).toEqual({ n: 24 });
   });
 
   it('get() falla si no se ha cargado, en vez de devolver algo inventado', () => {
-    const store = new JsonStore({ filePath: join(dir, 'x.json'), defaults: () => ({ n: 1 }) });
-    expect(() => store.get()).toThrow(/no está cargado/);
+    expect(() => store(new MemoryStorage(), () => ({ n: 1 })).get()).toThrow(/no está cargado/);
+  });
+
+  it('dice dónde vive el documento, para poder enseñárselo al usuario', () => {
+    expect(store(new MemoryStorage(), () => ({})).location).toBe('memoria:prueba');
+  });
+});
+
+describe('NodeFileStorage (FR-040)', () => {
+  it('escribe de forma atómica: no deja archivos temporales', async () => {
+    const storage = new NodeFileStorage(dir);
+    await storage.write(STORAGE_KEYS.titles, '{"a":1}');
+
+    const { readdir } = await import('node:fs/promises');
+    expect(await readdir(dir)).toEqual(['titles.json']);
+    expect(await storage.read(STORAGE_KEYS.titles)).toBe('{"a":1}');
+  });
+
+  it('atomicWriteFile deja el archivo completo y ningún temporal', async () => {
+    await atomicWriteFile(join(dir, 'x.json'), '{"a":1}', dir);
+    const { readdir } = await import('node:fs/promises');
+    expect(await readdir(dir)).toEqual(['x.json']);
+  });
+
+  it('un documento inexistente se lee como ausente, no como error', async () => {
+    expect(await new NodeFileStorage(dir).read(STORAGE_KEYS.runs)).toBeNull();
+  });
+
+  it('borrar algo que no existe no falla', async () => {
+    await expect(new NodeFileStorage(dir).remove(STORAGE_KEYS.runs)).resolves.toBeUndefined();
+  });
+
+  it('rechaza una clave que podría salirse del directorio', async () => {
+    await expect(new NodeFileStorage(dir).read('../../etc/passwd')).rejects.toThrow(/no válida/);
+  });
+
+  it('sobrevive a un reinicio', async () => {
+    await new NodeFileStorage(dir).write(STORAGE_KEYS.settings, '{"ok":true}');
+    expect(await new NodeFileStorage(dir).read(STORAGE_KEYS.settings)).toBe('{"ok":true}');
   });
 });
 
 describe('CatalogStore (FR-011, FR-012, NFR-006)', () => {
   async function newCatalog() {
-    const catalog = new CatalogStore(join(dir, 'titles.json'));
+    const catalog = new CatalogStore(new MemoryStorage());
     await catalog.load();
     return catalog;
   }
@@ -139,24 +172,23 @@ describe('CatalogStore (FR-011, FR-012, NFR-006)', () => {
   });
 
   it('sobrevive a un reinicio conservando los índices', async () => {
-    const path = join(dir, 'titles.json');
-    const first = new CatalogStore(path);
+    const storage = new NodeFileStorage(dir);
+    const first = new CatalogStore(storage);
     await first.load();
     await first.upsertMany([makeTitle({ id: 'a', genres: ['Drama'] })]);
 
-    const second = new CatalogStore(path);
+    const second = new CatalogStore(storage);
     await second.load();
     expect(second.narrow({ genres: ['Drama'] }).map((t) => t.id)).toEqual(['a']);
   });
 
-  it('descarta del disco las entradas que romperían los invariantes', async () => {
-    const path = join(dir, 'titles.json');
-    await writeFile(
-      path,
+  it('descarta al leer las entradas que romperían los invariantes', async () => {
+    const storage = new MemoryStorage();
+    await storage.write(
+      STORAGE_KEYS.titles,
       JSON.stringify({ schemaVersion: 1, titles: [{ id: 'roto' }, makeTitle({ id: 'bueno' })] }),
-      'utf8',
     );
-    const catalog = new CatalogStore(path);
+    const catalog = new CatalogStore(storage);
     await catalog.load();
     expect(catalog.all().map((t) => t.id)).toEqual(['bueno']);
   });
@@ -215,7 +247,7 @@ describe('mergeTitle', () => {
 
 describe('RatingsStore (FR-021, FR-025)', () => {
   async function newRatings() {
-    const ratings = new RatingsStore(join(dir, 'ratings.json'));
+    const ratings = new RatingsStore(new MemoryStorage());
     await ratings.load();
     return ratings;
   }
@@ -253,12 +285,12 @@ describe('RatingsStore (FR-021, FR-025)', () => {
   });
 
   it('persiste entre reinicios', async () => {
-    const path = join(dir, 'ratings.json');
-    const first = new RatingsStore(path);
+    const storage = new NodeFileStorage(dir);
+    const first = new RatingsStore(storage);
     await first.load();
     await first.setWatched('a', true);
 
-    const second = new RatingsStore(path);
+    const second = new RatingsStore(storage);
     await second.load();
     expect(second.get('a')?.watched).toBe(true);
   });
@@ -327,7 +359,7 @@ describe('buildWatchedStats (FR-033)', () => {
 
 describe('SettingsStore', () => {
   it('arranca con los valores por defecto de la especificación', async () => {
-    const settings = new SettingsStore(join(dir, 'settings.json'));
+    const settings = new SettingsStore(new MemoryStorage());
     const loaded = await settings.load();
     expect(loaded.schedule.weekday).toBe(1);
     expect(loaded.schedule.hour).toBe(9);
@@ -337,7 +369,7 @@ describe('SettingsStore', () => {
   });
 
   it('aplica parches parciales sin perder el resto', async () => {
-    const settings = new SettingsStore(join(dir, 'settings.json'));
+    const settings = new SettingsStore(new MemoryStorage());
     await settings.load();
     const updated = await settings.update({ revalidateTrailerWeeks: 4 });
     expect(updated.revalidateTrailerWeeks).toBe(4);
@@ -345,7 +377,7 @@ describe('SettingsStore', () => {
   });
 
   it('lista las plataformas activas (FR-005)', async () => {
-    const settings = new SettingsStore(join(dir, 'settings.json'));
+    const settings = new SettingsStore(new MemoryStorage());
     await settings.load();
     await settings.update({ platforms: { ...settings.get().platforms, 'pluto-tv': false } });
     expect(settings.enabledPlatformIds()).not.toContain('pluto-tv');
@@ -393,7 +425,7 @@ describe('RunsStore (FR-008)', () => {
   }
 
   it('guarda los informes del más reciente al más antiguo', async () => {
-    const runs = new RunsStore(join(dir, 'runs.json'));
+    const runs = new RunsStore(new MemoryStorage());
     await runs.load();
     await runs.append(fakeRun('1'));
     await runs.append(fakeRun('2'));
@@ -402,7 +434,7 @@ describe('RunsStore (FR-008)', () => {
   });
 
   it('acota el historial para que el archivo no crezca sin límite', async () => {
-    const runs = new RunsStore(join(dir, 'runs.json'));
+    const runs = new RunsStore(new MemoryStorage());
     await runs.load();
     for (let i = 0; i < MAX_RUNS + 10; i += 1) {
       await runs.append(fakeRun(String(i)));

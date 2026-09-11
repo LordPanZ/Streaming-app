@@ -100,18 +100,41 @@ describe('aislamiento del núcleo (NFR-001)', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('el núcleo solo importa de sí mismo, de shared o de node:', async () => {
+  it('el núcleo no importa nada de fuera de sí mismo', async () => {
     const externalDependencies = new Set<string>();
 
     for (const file of await collectFiles(CORE_DIR)) {
       for (const specifier of importedModules(await readFile(file, 'utf8'))) {
-        if (specifier.startsWith('.') || specifier.startsWith('node:')) continue;
+        if (specifier.startsWith('.')) continue;
         externalDependencies.add(specifier);
       }
     }
 
-    // Cero dependencias de terceros en el núcleo: es lo que permite ejecutarlo
-    // igual dentro de Electron que en la consola (ADR-011).
+    // Cero dependencias, ni de terceros ni de Node: es lo que permite ejecutar
+    // el mismo núcleo dentro de Electron, en la consola y en la vista web de
+    // Android (ADR-011, ADR-013).
     expect([...externalDependencies]).toEqual([]);
+  });
+
+  it('ningún archivo de src/core importa un módulo de Node (NFR-011)', async () => {
+    const offenders: string[] = [];
+
+    for (const file of await collectFiles(CORE_DIR)) {
+      for (const specifier of importedModules(await readFile(file, 'utf8'))) {
+        if (specifier.startsWith('node:')) {
+          offenders.push(`${relative(process.cwd(), file)} → ${specifier}`);
+        }
+      }
+    }
+
+    // Si esto falla, el núcleo ha dejado de poder ejecutarse en Android: lo que
+    // toque el sistema va detrás de una interfaz en `src/platform/`.
+    expect(offenders).toEqual([]);
+  });
+
+  it('las implementaciones de plataforma viven fuera del núcleo', async () => {
+    const { readdir } = await import('node:fs/promises');
+    const platforms = await readdir(join(process.cwd(), 'src', 'platform'));
+    expect(platforms.sort()).toEqual(['capacitor', 'node']);
   });
 });

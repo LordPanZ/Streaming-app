@@ -15,6 +15,7 @@ import type {
 import { personalScore, aggregateCritic, round1 } from '../domain/scoring';
 import { platformName } from '../domain/platforms';
 import { JsonStore, type RecoverHandler } from './json-store';
+import { STORAGE_KEYS, type KeyValueStorage } from './storage';
 
 export interface RatingsData {
   schemaVersion: number;
@@ -36,9 +37,10 @@ export class RatingsStore {
   private readonly store: JsonStore<RatingsData>;
   private byTitle = new Map<string, UserRating>();
 
-  constructor(filePath: string, onRecover?: RecoverHandler) {
+  constructor(storage: KeyValueStorage, onRecover?: RecoverHandler) {
     this.store = new JsonStore<RatingsData>({
-      filePath,
+      storage,
+      key: STORAGE_KEYS.ratings,
       defaults: emptyRatings,
       revive: (raw, defaults) => reviveRatings(raw, defaults),
       ...(onRecover ? { onRecover } : {}),

@@ -9,12 +9,10 @@ import { ResponseCache } from '../../src/core/providers/cache';
 import { describeError, RunRecorder, sanitizeIssue } from '../../src/core/agent/report';
 import { buildExportBundle } from '../../src/core/store/transfer';
 import { CatalogStore } from '../../src/core/store/catalog';
+import { MemoryStorage } from '../../src/core/store/storage';
 import { RatingsStore } from '../../src/core/store/ratings';
 import { SettingsStore } from '../../src/core/store/settings';
 import { RunsStore } from '../../src/core/store/runs';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { HttpError } from '../../src/core/providers/http';
 
 const SECRET = 'abcdef0123456789SECRETO';
@@ -96,23 +94,19 @@ describe('caché en disco', () => {
 
 describe('exportación de datos (FR-037 + Art. III.4)', () => {
   it('el paquete exportado no contiene ninguna clave de API', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'estrenos-sec-'));
-    try {
-      const catalog = new CatalogStore(join(dir, 'titles.json'));
-      const ratings = new RatingsStore(join(dir, 'ratings.json'));
-      const settings = new SettingsStore(join(dir, 'settings.json'));
-      const runs = new RunsStore(join(dir, 'runs.json'));
-      await Promise.all([catalog.load(), ratings.load(), settings.load(), runs.load()]);
+    const storage = new MemoryStorage();
+    const catalog = new CatalogStore(storage);
+    const ratings = new RatingsStore(storage);
+    const settings = new SettingsStore(storage);
+    const runs = new RunsStore(storage);
+    await Promise.all([catalog.load(), ratings.load(), settings.load(), runs.load()]);
 
-      const bundle = buildExportBundle({ catalog, ratings, settings, runs }, '1.0.0');
-      const serialized = JSON.stringify(bundle);
+    const bundle = buildExportBundle({ catalog, ratings, settings, runs }, '1.0.0');
+    const serialized = JSON.stringify(bundle);
 
-      expect(serialized).not.toContain(SECRET);
-      expect(serialized).not.toContain('api_key');
-      expect(serialized).not.toContain('apikey');
-    } finally {
-      await rm(dir, { recursive: true, force: true });
-    }
+    expect(serialized).not.toContain(SECRET);
+    expect(serialized).not.toContain('api_key');
+    expect(serialized).not.toContain('apikey');
   });
 });
 

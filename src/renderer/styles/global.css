@@ -216,7 +216,7 @@ a {
 
 .search input {
   width: 100%;
-  padding: 8px 12px 8px 34px;
+  padding: 8px 12px 8px 40px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--bg);
@@ -227,9 +227,12 @@ a {
   border-color: var(--border-strong);
 }
 
+/* SVG en lugar de emoji: un glifo de fuente cambia de ancho según el sistema
+   (o se sustituye por un recuadro si falta la fuente) y acaba invadiendo el
+   texto del campo. El vector mide siempre lo mismo. */
 .search__icon {
   position: absolute;
-  left: 11px;
+  left: 13px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-faint);
@@ -904,6 +907,8 @@ input[type='number']:focus {
 }
 
 .progress__fill {
+  /* Mismo motivo que en `.bar-fill`: sin `display: block` no tiene tamaño. */
+  display: block;
   height: 100%;
   background: var(--accent);
   transition: width 0.2s;
@@ -955,6 +960,9 @@ input[type='number']:focus {
 }
 
 .bar-fill {
+  /* `display: block` es imprescindible: es un <span>, y un elemento en línea
+     ignora `width` y `height`, así que la barra no se pintaba. */
+  display: block;
   height: 100%;
   background: var(--accent);
   border-radius: 4px;

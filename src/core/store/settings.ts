@@ -7,6 +7,7 @@ import type { Settings } from '../../shared/types';
 import { defaultCriteria, mergeCriteria } from '../domain/criteria';
 import { defaultPlatformToggles, PLATFORMS } from '../domain/platforms';
 import { JsonStore, type RecoverHandler } from './json-store';
+import { STORAGE_KEYS, type KeyValueStorage } from './storage';
 
 export const SETTINGS_SCHEMA_VERSION = 1;
 
@@ -31,9 +32,10 @@ export function defaultSettings(): Settings {
 export class SettingsStore {
   private readonly store: JsonStore<Settings>;
 
-  constructor(filePath: string, onRecover?: RecoverHandler) {
+  constructor(storage: KeyValueStorage, onRecover?: RecoverHandler) {
     this.store = new JsonStore<Settings>({
-      filePath,
+      storage,
+      key: STORAGE_KEYS.settings,
       defaults: defaultSettings,
       revive: (raw, defaults) => migrateSettings(raw, defaults),
       ...(onRecover ? { onRecover } : {}),

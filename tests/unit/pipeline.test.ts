@@ -3,15 +3,13 @@
  * con proveedores simulados, incluidos los caminos de fallo parcial (ADR-006).
  */
 
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { HttpClient } from '../../src/core/providers/http';
 import { TmdbClient, type TmdbDiscoverPage } from '../../src/core/providers/tmdb';
 import { OmdbClient } from '../../src/core/providers/omdb';
 import { YoutubeVerifier } from '../../src/core/providers/youtube';
 import { CatalogStore } from '../../src/core/store/catalog';
+import { MemoryStorage } from '../../src/core/store/storage';
 import { defaultSettings } from '../../src/core/store/settings';
 import { enabledPlatformIds, runWeeklyAgent } from '../../src/core/agent/pipeline';
 import { mergeRatings } from '../../src/core/agent/stages/rate';
@@ -23,18 +21,15 @@ import { makeRatings } from '../helpers/factories';
 
 const NOW = new Date('2026-09-10T09:00:00.000Z');
 
-let dir: string;
+let storage: MemoryStorage;
 let catalog: CatalogStore;
 
 beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), 'estrenos-pipeline-'));
-  catalog = new CatalogStore(join(dir, 'titles.json'));
+  storage = new MemoryStorage();
+  catalog = new CatalogStore(storage);
   await catalog.load();
 });
 
-afterEach(async () => {
-  await rm(dir, { recursive: true, force: true });
-});
 
 /** Un mundo simulado completo: proveedores, un estreno y su tráiler. */
 async function buildWorld(overrides: Partial<Record<string, FakeResponse>> = {}) {
