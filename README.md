@@ -45,8 +45,8 @@ operativo. Puedes exportarlo todo a un JSON o borrarlo por completo.
 
 ## Instalación
 
-Descarga el archivo de tu sistema desde la página de publicaciones del
-repositorio:
+Descarga el archivo de tu sistema desde
+[la última publicación](https://github.com/LordPanZ/Streaming-app/releases/latest):
 
 | Sistema | Archivo |
 |---|---|
