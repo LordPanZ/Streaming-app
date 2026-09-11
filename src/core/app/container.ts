@@ -11,21 +11,21 @@ import type {
   AgentRun,
   RunTrigger,
   Settings,
-} from '../shared/types';
-import { ResponseCache } from '../core/providers/cache';
-import { HttpClient } from '../core/providers/http';
-import { OmdbClient } from '../core/providers/omdb';
-import { TmdbClient } from '../core/providers/tmdb';
-import { YoutubeVerifier } from '../core/providers/youtube';
-import { CatalogStore } from '../core/store/catalog';
-import { RatingsStore } from '../core/store/ratings';
-import { RunsStore } from '../core/store/runs';
-import { SettingsStore } from '../core/store/settings';
-import { CatalogService } from '../core/service/catalog-service';
-import { runWeeklyAgent, type RunOptions } from '../core/agent/pipeline';
-import { advanceSchedule, dueReason, ensureScheduled } from '../core/agent/scheduler';
-import type { AgentDeps } from '../core/agent/context';
-import { STORAGE_KEYS, type KeyValueStorage } from '../core/store/storage';
+} from '../../shared/types';
+import { ResponseCache } from '../providers/cache';
+import { HttpClient } from '../providers/http';
+import { OmdbClient } from '../providers/omdb';
+import { TmdbClient } from '../providers/tmdb';
+import { YoutubeVerifier } from '../providers/youtube';
+import { CatalogStore } from '../store/catalog';
+import { RatingsStore } from '../store/ratings';
+import { RunsStore } from '../store/runs';
+import { SettingsStore } from '../store/settings';
+import { CatalogService } from '../service/catalog-service';
+import { runWeeklyAgent, type RunOptions } from '../agent/pipeline';
+import { advanceSchedule, dueReason, ensureScheduled } from '../agent/scheduler';
+import type { AgentDeps } from '../agent/context';
+import { STORAGE_KEYS, type KeyValueStorage } from '../store/storage';
 
 export interface KeyProvider {
   get(name: 'tmdb' | 'omdb'): string | null;

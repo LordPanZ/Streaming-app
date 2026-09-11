@@ -12,23 +12,33 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "node scripts/dev.mjs",
+    "agent": "npm run build:main && node dist/main/agent-cli.cjs",
+    "android:open": "npx cap open android",
     "build": "npm run build:renderer && npm run build:main",
-    "build:renderer": "vite build",
+    "build:android": "npm run build:renderer && npx cap sync android",
     "build:main": "node scripts/build-main.mjs",
+    "build:main:watch": "node scripts/build-main.mjs --watch",
+    "build:renderer": "vite build",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "dev": "node scripts/dev.mjs",
+    "lint": "eslint src scripts tests --ext .ts,.tsx",
     "package": "npm run build && electron-builder --publish never",
     "package:all": "npm run build && electron-builder -mwl --publish never",
-    "agent": "npm run build:main && node dist/main/agent-cli.cjs",
     "test": "vitest run",
-    "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint src scripts tests --ext .ts,.tsx",
-    "check": "npm run typecheck && npm run lint && npm test",
-    "build:main:watch": "node scripts/build-main.mjs --watch"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@capacitor/app": "6.0.2",
+    "@capacitor/browser": "6.0.4",
+    "@capacitor/core": "6.2.0",
+    "@capacitor/filesystem": "6.0.2",
+    "@capacitor/preferences": "6.0.3"
+  },
   "devDependencies": {
+    "@capacitor/android": "6.2.0",
+    "@capacitor/cli": "6.2.0",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

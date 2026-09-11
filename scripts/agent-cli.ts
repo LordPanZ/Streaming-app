@@ -8,7 +8,7 @@
  *   TMDB_API_KEY=... OMDB_API_KEY=... npm run agent -- --data-dir ./datos
  */
 
-import { AppContainer } from '../src/main/container';
+import { AppContainer } from '../src/core/app/container';
 import type { RunOptions } from '../src/core/agent/pipeline';
 import { PLATFORMS } from '../src/core/domain/platforms';
 import { NodeFileStorage } from '../src/platform/node/node-storage';

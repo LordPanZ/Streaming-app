@@ -5,11 +5,10 @@
 
 import { app, BrowserWindow, shell } from 'electron';
 import { join } from 'node:path';
-import { IPC_EVENTS } from '../shared/ipc';
-import { summarize } from '../core/store/runs';
 import { CHECK_INTERVAL_MS } from '../core/agent/scheduler';
-import { AppContainer } from './container';
-import { registerIpcHandlers } from './ipc';
+import { AppContainer } from '../core/app/container';
+import { AppService } from '../core/app/app-service';
+import { forwardEvents, registerIpcHandlers } from './ipc';
 import { SecretsManager } from './secrets';
 import { NodeFileStorage } from '../platform/node/node-storage';
 import { DATA_FOLDER } from './paths';
@@ -27,6 +26,7 @@ const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5273
 
 let mainWindow: BrowserWindow | null = null;
 let container: AppContainer | null = null;
+let service: AppService | null = null;
 let scheduleTimer: NodeJS.Timeout | null = null;
 
 /**
@@ -85,20 +85,12 @@ function createWindow(): BrowserWindow {
 
 /**
  * Planificador (ADR-007): comprueba el vencimiento al arrancar y cada cuarto de
- * hora. No hay temporizador que "recuerde" la cita; se pregunta si ya pasó.
+ * hora. No hay temporizador que "recuerde" la cita; se pregunta si ya pasó, y
+ * el servicio decide si toca y avisa a la ventana.
  */
 async function checkSchedule(): Promise<void> {
-  if (!container || container.isRunning) return;
-
-  const trigger = container.pendingTrigger();
-  if (!trigger || !container.hasKeys()) return;
-
   try {
-    const run = await container.runAgent({ trigger }, (progress) => {
-      mainWindow?.webContents.send(IPC_EVENTS.agentProgress, progress);
-    });
-    mainWindow?.webContents.send(IPC_EVENTS.agentDone, summarize(run));
-    mainWindow?.webContents.send(IPC_EVENTS.catalogChanged, { reason: 'agent' });
+    await service?.runIfDue();
   } catch (error) {
     console.error('[agente] la ejecución programada ha fallado:', error);
   }
@@ -118,12 +110,14 @@ async function bootstrap(): Promise<void> {
   });
   await container.load();
 
-  registerIpcHandlers({
+  service = new AppService({
     container,
     secrets,
     appVersion: app.getVersion(),
-    getWindow: () => mainWindow,
+    emit: forwardEvents(() => mainWindow),
   });
+
+  registerIpcHandlers({ service, getWindow: () => mainWindow });
 
   mainWindow = createWindow();
 

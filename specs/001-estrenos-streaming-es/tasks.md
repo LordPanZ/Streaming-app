@@ -90,6 +90,17 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T086** Agente semanal desatendido en la nube *(FR-010)* → `.github/workflows/weekly-agent.yml`
 - [x] **T087** Documentación de usuario → `README.md`
 
+## Fase 9 — Android y PC con el mismo código
+
+- [x] **T100** Almacenamiento tras una interfaz; el núcleo deja de usar `node:` *(NFR-011, ADR-013)* → `core/store/storage.ts`, `src/platform/`
+- [x] **T101** Escritura atómica de Node y almacenamiento del contenedor de Android *(FR-040)* → `platform/node/`, `platform/capacitor/`
+- [x] **T102** Servicio de aplicación común; el IPC pasa a ser un adaptador *(FR-044, ADR-012)* → `core/app/app-service.ts`
+- [x] **T103** Implementación de `IpcApi` en el mismo proceso para el móvil *(FR-044)* → `platform/capacitor/local-api.ts`
+- [x] **T104** Claves en almacenamiento privado de Android *(FR-047)* → `platform/capacitor/capacitor-secrets.ts`
+- [x] **T105** Arranque del móvil, `fetch` nativo y ejecución al volver a primer plano *(FR-046, ADR-014, ADR-015)* → `platform/capacitor/bootstrap.ts`
+- [x] **T106** Interfaz adaptada a pantallas estrechas *(FR-045, NFR-012)* → `renderer/styles/global.css`
+- [x] **T107** Proyecto de Android y flujo que construye el APK *(FR-043)* → `capacitor.config.ts`, `android/`, `.github/workflows/android.yml`
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué
@@ -102,3 +113,6 @@ requisitos quedan sin cobertura automática por su culpa.
 - [ ] **T094** Banco de pruebas de componentes para la interfaz *(FR-032, FR-034, FR-042, NFR-007)*
 - [ ] **T095** Prueba de integración de `safeStorage` con Electron en ejecución *(FR-035)*
 - [ ] **T096** Verificación automática del empaquetado en las tres plataformas *(FR-041)*
+- [ ] **T097** Comprobación del APK en un móvil Android real *(FR-043, FR-045)*
+- [ ] **T098** Selector de archivos nativo para importar en Android *(FR-038)*
+- [ ] **T099** Sincronización opcional entre el PC y el móvil

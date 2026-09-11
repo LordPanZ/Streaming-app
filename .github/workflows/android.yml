@@ -1,0 +1,52 @@
+name: APK de Android
+
+# FR-043: construye el APK instalable. Los ejecutores de Ubuntu ya traen el SDK
+# de Android, así que no hay que instalarlo.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  apk:
+    name: Construir el APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Instalar dependencias
+        run: npm ci
+        env:
+          # El APK no lleva Electron dentro: bajarlo solo alargaría el trabajo.
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
+      - name: Comprobar antes de construir
+        run: npm run typecheck && npm test
+
+      - name: Compilar la interfaz y sincronizar el contenedor
+        run: npm run build:android
+
+      - name: Construir el APK de depuración
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      # Firmado de depuración: sirve para instalarlo en un móvil propio, no para
+      # publicarlo en una tienda. La firma de publicación es la tarea T093.
+      - name: Guardar el APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: estrenos-es-android
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

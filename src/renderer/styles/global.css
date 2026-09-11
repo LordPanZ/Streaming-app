@@ -214,7 +214,10 @@ a {
   position: relative;
 }
 
-.search input {
+/* El selector incluye el atributo a propósito: la regla genérica
+   `input[type='text']` de más abajo tiene la misma especificidad y, al ir
+   después, ganaba el `padding-left` y dejaba el texto debajo del icono. */
+.search input[type='text'] {
   width: 100%;
   padding: 8px 12px 8px 40px;
   border-radius: var(--radius);
@@ -223,7 +226,7 @@ a {
   outline: none;
 }
 
-.search input:focus {
+.search input[type='text']:focus {
   border-color: var(--border-strong);
 }
 
@@ -1102,4 +1105,217 @@ input[type='number']:focus {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   Móvil (FR-045, NFR-012)
+   ==========================================================================
+   La barra lateral pasa a ser navegación inferior, la rejilla baja a dos
+   columnas y la ficha ocupa la pantalla entera. El punto de corte está en
+   720 px: por encima cabe la barra lateral, por debajo estorba.
+   ========================================================================== */
+
+.sidebar__agent {
+  padding: 0 10px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  line-height: 1.7;
+}
+
+@media (max-width: 720px) {
+  :root {
+    /* Alto de la navegación inferior, para reservarle sitio al contenido. */
+    --bottom-nav-height: 58px;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  /* Lo que solo tiene sentido con espacio de sobra. */
+  .sidebar__desktop-only {
+    display: none;
+  }
+
+  .sidebar {
+    grid-row: 2;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    padding: 0;
+    height: var(--bottom-nav-height);
+    overflow: visible;
+    /* Por encima del contenido y respetando la zona de gestos del sistema. */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border-radius: 0;
+    font-size: 10.5px;
+    text-align: center;
+    /* Área táctil cómoda aunque la etiqueta sea corta. */
+    min-height: 44px;
+  }
+
+  .nav-item--active {
+    background: transparent;
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+
+  .nav-item__count {
+    display: none;
+  }
+
+  .main {
+    grid-row: 1;
+    min-height: 0;
+  }
+
+  .header {
+    height: auto;
+    min-height: 0;
+    padding: 10px 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Orden explícito: buscador arriba a todo lo ancho, y debajo el estado del
+     agente con el botón de recopilar a la derecha. Sin esto el botón se cuela
+     antes que el buscador, porque su `order` implícito es 0. */
+  .search {
+    max-width: none;
+    flex: 1 1 100%;
+    order: 1;
+  }
+
+  .header > .btn {
+    order: 3;
+    margin-left: auto;
+  }
+
+  .search input[type='text'],
+  .btn,
+  .select {
+    /* 44 px es el mínimo cómodo para el dedo. */
+    min-height: 40px;
+  }
+
+  .agent-bar {
+    order: 2;
+    font-size: 11px;
+  }
+
+  .progress {
+    width: 70px;
+  }
+
+  .content {
+    padding: 16px 14px 28px;
+  }
+
+  .page-title {
+    font-size: 19px;
+  }
+
+  /* Los filtros se desplazan en horizontal en lugar de apilarse en seis filas. */
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 14px;
+    scrollbar-width: none;
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filters__spacer {
+    display: none;
+  }
+
+  .select {
+    flex: 0 0 auto;
+    max-width: none;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .card__body {
+    padding: 9px 10px 11px;
+    gap: 6px;
+  }
+
+  .card__title {
+    font-size: 12.5px;
+  }
+
+  /* La ficha ocupa la pantalla: en un móvil no hay sitio para un panel lateral. */
+  .drawer {
+    width: 100%;
+  }
+
+  .drawer__body {
+    padding: 0 16px 40px;
+  }
+
+  .drawer__title {
+    font-size: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stat__value {
+    font-size: 21px;
+  }
+
+  .bar-row {
+    grid-template-columns: 96px 1fr 46px;
+    gap: 8px;
+    font-size: 11.5px;
+  }
+
+  .run-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .toggle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field__row {
+    flex-wrap: wrap;
+  }
+
+  .criterion {
+    grid-template-columns: 1fr 42px;
+  }
+
+  .settings-stack {
+    max-width: none;
+  }
+}
+
+/* Pantallas muy estrechas: una sola columna de tarjetas. */
+@media (max-width: 380px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }

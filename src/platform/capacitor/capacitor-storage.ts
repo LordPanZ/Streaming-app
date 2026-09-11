@@ -10,30 +10,25 @@
  * cumple igual en las dos plataformas.
  */
 
+import { Directory, Encoding, type FilesystemPlugin } from '@capacitor/filesystem';
 import type { KeyValueStorage } from '../../core/store/storage';
 
-/** Subconjunto del complemento de archivos que necesitamos. */
-export interface FilesystemLike {
-  readFile(options: { path: string; directory: string; encoding: string }): Promise<{ data: string | Blob }>;
-  writeFile(options: {
-    path: string;
-    data: string;
-    directory: string;
-    encoding: string;
-    recursive?: boolean;
-  }): Promise<unknown>;
-  deleteFile(options: { path: string; directory: string }): Promise<unknown>;
-  mkdir(options: { path: string; directory: string; recursive: boolean }): Promise<unknown>;
-}
+/**
+ * Solo las cuatro operaciones que necesitamos, para que las pruebas puedan
+ * pasar un doble sin implementar el complemento entero.
+ */
+export type FilesystemLike = Pick<
+  FilesystemPlugin,
+  'readFile' | 'writeFile' | 'deleteFile' | 'mkdir'
+>;
 
-const ENCODING = 'utf8';
 const FOLDER = 'estrenos-es';
 
 export class CapacitorFileStorage implements KeyValueStorage {
   constructor(
     private readonly filesystem: FilesystemLike,
     /** Directorio del contenedor; en Android, el privado de la aplicación. */
-    private readonly directory: string,
+    private readonly directory: Directory,
   ) {}
 
   private pathFor(key: string, backup = false): string {
@@ -85,7 +80,7 @@ export class CapacitorFileStorage implements KeyValueStorage {
       const result = await this.filesystem.readFile({
         path,
         directory: this.directory,
-        encoding: ENCODING,
+        encoding: Encoding.UTF8,
       });
       return typeof result.data === 'string' ? result.data : null;
     } catch {
@@ -98,7 +93,7 @@ export class CapacitorFileStorage implements KeyValueStorage {
       path,
       data,
       directory: this.directory,
-      encoding: ENCODING,
+      encoding: Encoding.UTF8,
       recursive: true,
     });
   }

@@ -9,3 +9,8 @@ coverage/
 !.env.example
 datos-agente/
 agent-output/
+
+# Capacitor copia aquí la interfaz compilada al sincronizar
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json

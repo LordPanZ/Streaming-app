@@ -54,9 +54,14 @@ automático nada que no lo esté.
 | FR-037 Exportación | `core/store/transfer.ts` (`buildExportBundle`) | `unit/transfer.test.ts`, `unit/security.test.ts` | Automática |
 | FR-038 Importación | `core/store/transfer.ts` (`parseBundle`, `applyBundle`) | `unit/transfer.test.ts` → «respeta las valoraciones existentes» | Automática |
 | FR-039 Borrado | `core/store/transfer.ts` (`wipeAll`) | `unit/transfer.test.ts` → bloque `wipeAll` | Automática |
-| FR-040 Persistencia local atómica | `core/store/json-store.ts` | `unit/stores.test.ts` → «escribe de forma atómica», «aparta un archivo corrupto» | Automática |
+| FR-040 Persistencia local atómica | `platform/node/node-storage.ts` (PC), `platform/capacitor/capacitor-storage.ts` (Android) | `unit/stores.test.ts` → «escribe de forma atómica»; `unit/capacitor-storage.test.ts` → «recupera la copia si el documento principal quedó a medio escribir» | Automática **en el PC**; en Android la garantía es menor y se declara en ADR-013 |
 | FR-041 Aplicación descargable | `electron-builder.yml`, `.github/workflows/release.yml` | Compilación verificada en CI; instaladores generados al etiquetar | Parcial |
-| FR-042 Primer arranque sin claves | `renderer/views/Browse.tsx`, `main/ipc.ts` (`NO_API_KEY`) | Lista manual §3, punto 1 | Manual |
+| FR-042 Primer arranque sin claves | `renderer/views/Browse.tsx`, `core/app/app-service.ts` (`NO_API_KEY`) | Lista manual §3, punto 1 | Manual |
+| FR-043 Aplicación para Android | `capacitor.config.ts`, `android/`, `.github/workflows/android.yml` | Construcción del APK en integración continua | Parcial |
+| FR-044 Misma lógica en ambas plataformas | `core/app/app-service.ts`, `platform/capacitor/local-api.ts` | `unit/architecture.test.ts` (núcleo sin importaciones externas); el servicio es el único camino en las dos | Automática (estructura) |
+| FR-045 Interfaz adaptada al móvil | `renderer/styles/global.css` (consultas de medios) | Medición del ancho del documento a 412 px y a 360 px, sin desbordamiento | Automática (medida) + manual |
+| FR-046 Recopilación sin servicio en segundo plano | `core/app/app-service.ts` (`runIfDue`), `platform/capacitor/bootstrap.ts` | `unit/scheduler.test.ts` → «tres semanas vencidas producen una sola ejecución» | Automática |
+| FR-047 Claves de API en Android | `platform/capacitor/capacitor-secrets.ts` | `unit/capacitor-storage.test.ts` → bloque `CapacitorSecretsVault` (5 casos) | Automática |
 
 ## 2. Requisitos no funcionales
 
@@ -72,6 +77,8 @@ automático nada que no lo esté.
 | NFR-008 Validación de entrada IPC | `shared/validate.ts` | `unit/validate.test.ts` (35 casos) | Automática |
 | NFR-009 Claves fuera de logs y exportaciones | `core/providers/http.ts` (`sanitizeUrl`), `core/agent/report.ts` | `unit/security.test.ts` (11 casos) | Automática |
 | NFR-010 Sin telemetría | Lista blanca de `core/providers/http.ts` | `contract/http.test.ts` → «rechaza cualquier otro anfitrión sin llegar a pedir nada» | Automática |
+| NFR-011 Núcleo sin APIs de Node | `core/store/storage.ts`, `src/platform/` | `unit/architecture.test.ts` → «ningún archivo de src/core importa un módulo de Node» | Automática |
+| NFR-012 Sin desbordamiento desde 360 px | `renderer/styles/global.css` | Medición de `scrollWidth` frente a `clientWidth` a 412 px y 360 px | Automática (medida) |
 
 ## 3. Lista de verificación manual
 
@@ -113,6 +120,8 @@ Se declaran aquí para que consten, en lugar de darlos por probados:
 |---|---|---|
 | FR-032, FR-034, FR-042 | Presentación de la interfaz; no hay banco de pruebas de componentes | T094 |
 | FR-035 (persistencia cifrada) | `safeStorage` exige un proceso de Electron en ejecución | T095 |
-| FR-041 | El empaquetado real solo se verifica al ejecutar `electron-builder` en cada sistema | T096 |
+| FR-041 | El empaquetado real solo se verifica al ejecutar `electron-builder` en cada sistema. Comprobado el AppImage de Linux; Windows y macOS solo en integración continua | T096 |
+| FR-043 | El APK se construye en integración continua, pero no se ha instalado en un móvil físico desde este entorno | T097 |
+| FR-045 | Verificado midiendo el ancho del documento en un navegador emulando un móvil, no en un dispositivo real | T097 |
 | NFR-005 | Depende de la red real y del tamaño del catálogo de cada semana | — |
 | NFR-007 | Configuración de `BrowserWindow`; se verifica a mano (punto 8) | T094 |

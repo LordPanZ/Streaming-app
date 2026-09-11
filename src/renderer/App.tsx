@@ -128,7 +128,7 @@ export function App() {
   return (
     <div className="app">
       <nav className="sidebar">
-        <div className="sidebar__brand">
+        <div className="sidebar__brand sidebar__desktop-only">
           <span className="sidebar__logo" aria-hidden="true">
             🍿
           </span>
@@ -153,8 +153,8 @@ export function App() {
           </button>
         ))}
 
-        <div className="sidebar__section">Agente</div>
-        <div style={{ padding: '0 10px', fontSize: 11.5, color: 'var(--text-faint)', lineHeight: 1.7 }}>
+        <div className="sidebar__section sidebar__desktop-only">Agente</div>
+        <div className="sidebar__agent sidebar__desktop-only">
           <div>Última: {formatDateTime(agent.status?.lastRunAt)}</div>
           <div>Próxima: {formatDateTime(agent.status?.nextRunAt)}</div>
         </div>
