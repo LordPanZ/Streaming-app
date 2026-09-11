@@ -10,6 +10,10 @@ on:
   # versión: útil cuando solo se quiere probar el resultado.
   workflow_dispatch:
 
+# Necesario para crear la publicación y adjuntarle los archivos.
+permissions:
+  contents: write
+
 jobs:
   empaquetar:
     name: Empaquetar en ${{ matrix.os }}
@@ -48,3 +52,53 @@ jobs:
             release/*.AppImage
             release/*.deb
           if-no-files-found: warn
+
+  apk:
+    name: APK de Android
+    # Se reutiliza el flujo del APK en lugar de repetir aquí sus pasos.
+    uses: ./.github/workflows/android.yml
+
+  publicar:
+    name: Publicar la versión
+    needs: [empaquetar, apk]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recoger todo lo construido
+        uses: actions/download-artifact@v4
+        with:
+          path: artefactos
+
+      - name: Aplanar los archivos
+        run: |
+          mkdir -p publicar
+          find artefactos -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' \
+            -o -name '*.deb' -o -name '*.apk' \) -exec cp {} publicar/ \;
+          ls -lh publicar
+
+      - name: Publicar
+        uses: softprops/action-gh-release@v2
+        with:
+          # Etiqueta fija: cada ejecución sustituye los archivos de esta versión
+          # en lugar de acumular publicaciones sueltas.
+          tag_name: v1.0.0
+          name: Estrenos ES 1.0.0
+          body: |
+            Primera versión. Recopilación semanal de estrenos de doce plataformas
+            de streaming en España, con notas de IMDb, Rotten Tomatoes, Metacritic
+            y TMDB, géneros, tráiler en castellano verificado, marcado de vistas y
+            valoración por siete criterios ponderados.
+
+            | Sistema | Archivo |
+            |---|---|
+            | Windows | `Estrenos-ES-Setup-1.0.0.exe` |
+            | macOS | `Estrenos-ES-1.0.0-<arquitectura>.dmg` |
+            | Linux | `Estrenos-ES-1.0.0.AppImage` o `.deb` |
+            | Android | `app-debug.apk` |
+
+            Los archivos de escritorio no van firmados y el APK lleva firma de
+            depuración: valen para instalarlos en equipos propios, no para
+            distribuirlos en una tienda.
+          files: publicar/*
+          draft: false
+          prerelease: false

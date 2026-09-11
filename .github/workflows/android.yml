@@ -7,6 +7,8 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+  # Invocable desde el flujo de publicación, para no duplicar estos pasos.
+  workflow_call:
 
 jobs:
   apk:
