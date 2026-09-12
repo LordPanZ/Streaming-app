@@ -3,7 +3,7 @@
  * (FR-005, FR-023, FR-026, FR-001).
  */
 
-import type { Settings } from '../../shared/types';
+import type { QualitySettings, Settings } from '../../shared/types';
 import { defaultCriteria, mergeCriteria } from '../domain/criteria';
 import { defaultPlatformToggles, PLATFORMS } from '../domain/platforms';
 import { JsonStore, type RecoverHandler } from './json-store';
@@ -26,6 +26,9 @@ export function defaultSettings(): Settings {
     criteria: defaultCriteria(),
     revalidateTrailerWeeks: 8,
     cacheTtlHours: 168,
+    // Listón de calidad apagado por defecto (FR-053): la primera vez conviene
+    // ver lo que hay antes de decidir dónde ponerlo.
+    quality: { minCritic: 0, includeUnrated: true },
   };
 }
 
@@ -103,6 +106,31 @@ export function sanitizeSettings(candidate: Partial<Settings>, fallback: Setting
       fallback.revalidateTrailerWeeks,
     ),
     cacheTtlHours: clampInt(candidate.cacheTtlHours, 1, 8760, fallback.cacheTtlHours),
+    quality: sanitizeQuality(candidate.quality, fallback.quality),
+  };
+}
+
+/**
+ * El listón de calidad se recorta al rango 0–10 con un decimal (FR-053).
+ *
+ * `includeUnrated` solo se cambia si viene un booleano de verdad: es la
+ * decisión que separa «no llega al mínimo» de «todavía no lo sabemos», y no se
+ * toca por accidente.
+ */
+function sanitizeQuality(
+  raw: Partial<QualitySettings> | undefined,
+  fallback: QualitySettings,
+): QualitySettings {
+  const source = typeof raw === 'object' && raw !== null ? raw : {};
+  const minCritic =
+    typeof source.minCritic === 'number' && Number.isFinite(source.minCritic)
+      ? Math.round(Math.min(10, Math.max(0, source.minCritic)) * 10) / 10
+      : fallback.minCritic;
+
+  return {
+    minCritic,
+    includeUnrated:
+      typeof source.includeUnrated === 'boolean' ? source.includeUnrated : fallback.includeUnrated,
   };
 }
 

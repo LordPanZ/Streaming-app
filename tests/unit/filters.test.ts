@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  applyQualityFloor,
   buildFacets,
   compareViews,
   filterViews,
@@ -68,6 +69,94 @@ describe('matchesMinCritic (FR-029, FR-014)', () => {
     const good = view({ ratings: makeRatings({ imdb: 8 }) });
     expect(matchesMinCritic(good, 7)).toBe(true);
     expect(matchesMinCritic(good, 9)).toBe(false);
+  });
+
+  it('con includeUnrated, lo que nadie ha puntuado pasa (FR-053)', () => {
+    // «Todavía no lo ha visto nadie» no es «es malo»: en los estrenos de la
+    // semana es el caso habitual.
+    expect(matchesMinCritic(view(), 7, true)).toBe(true);
+  });
+
+  it('includeUnrated no indulta a lo que sí tiene nota y no llega', () => {
+    const weak = view({ ratings: makeRatings({ imdb: 4 }) });
+    expect(matchesMinCritic(weak, 7, true)).toBe(false);
+  });
+
+  it('filterViews respeta includeUnrated', () => {
+    const views = [
+      view({ id: 'buena', ratings: makeRatings({ imdb: 8 }) }),
+      view({ id: 'floja', ratings: makeRatings({ imdb: 4 }) }),
+      view({ id: 'sin-nota' }),
+    ];
+
+    expect(filterViews(views, { minCritic: 7 }).map((v) => v.title.id)).toEqual(['buena']);
+    expect(filterViews(views, { minCritic: 7, includeUnrated: true }).map((v) => v.title.id)).toEqual(
+      ['buena', 'sin-nota'],
+    );
+  });
+});
+
+describe('applyQualityFloor (FR-053)', () => {
+  const quality = { minCritic: 7, includeUnrated: true };
+
+  it('aplica el listón guardado cuando la consulta no pide nota mínima', () => {
+    expect(applyQualityFloor({ week: 'current' }, quality)).toEqual({
+      week: 'current',
+      minCritic: 7,
+      includeUnrated: true,
+    });
+  });
+
+  it('un cero explícito del usuario manda sobre los ajustes', () => {
+    // «Cualquier nota» en la barra de filtros no puede acabar reaplicando el
+    // listón: sería ignorar lo que acaba de pedir.
+    expect(applyQualityFloor({ minCritic: 0 }, quality)).toEqual({ minCritic: 0 });
+  });
+
+  it('una nota mínima explícita tampoco se pisa', () => {
+    expect(applyQualityFloor({ minCritic: 9 }, quality)).toEqual({ minCritic: 9 });
+  });
+
+  it('sin listón guardado, la consulta sale intacta', () => {
+    const query = { week: 'all' };
+    expect(applyQualityFloor(query, { minCritic: 0, includeUnrated: true })).toEqual(query);
+  });
+
+  it('no muta la consulta recibida', () => {
+    const query = { week: 'current' };
+    applyQualityFloor(query, quality);
+    expect(query).toEqual({ week: 'current' });
+  });
+});
+
+describe('buildFacets con listón de calidad (FR-053)', () => {
+  const views = [
+    view({ id: 'buena', genres: ['Drama'], ratings: makeRatings({ imdb: 8 }) }),
+    view({ id: 'floja', genres: ['Terror'], ratings: makeRatings({ imdb: 4 }) }),
+    view({ id: 'sin-nota', genres: ['Terror'] }),
+  ];
+
+  it('sin listón cuenta el catálogo entero y no esconde nada', () => {
+    const facets = buildFacets(views, '2026-W37');
+    expect(facets.totalTitles).toBe(3);
+    expect(facets.visibleTitles).toBe(3);
+    expect(facets.belowFloor).toBe(0);
+  });
+
+  it('los recuentos cuentan lo que se va a ver, no lo guardado', () => {
+    // Un «(3)» junto a un género donde solo se pinta uno es un dato que miente.
+    const facets = buildFacets(views, '2026-W37', { minCritic: 7, includeUnrated: false });
+    expect(facets.totalTitles).toBe(3);
+    expect(facets.visibleTitles).toBe(1);
+    expect(facets.belowFloor).toBe(2);
+    expect(facets.genres).toEqual([{ value: 'Drama', count: 1 }]);
+  });
+
+  it('con includeUnrated, los que no tienen nota cuentan', () => {
+    const facets = buildFacets(views, '2026-W37', { minCritic: 7, includeUnrated: true });
+    expect(facets.visibleTitles).toBe(2);
+    expect(facets.belowFloor).toBe(1);
+    expect(facets.genres.map((g) => g.value).sort()).toEqual(['Drama', 'Terror']);
   });
 });
 

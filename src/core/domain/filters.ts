@@ -48,13 +48,39 @@ export function matchesStatus(view: TitleView, status: WatchStatusFilter): boole
 }
 
 /**
- * Nota mínima de crítica (FR-029). Un título sin índice **no** pasa el filtro
- * cuando se pide un mínimo: no podemos afirmar que lo cumpla (FR-014).
+ * Nota mínima de crítica (FR-029, FR-053).
+ *
+ * Un título sin índice no puede afirmar que cumpla el mínimo (FR-014), así que
+ * por defecto no pasa. Pero «todavía no lo ha puntuado nadie» no es lo mismo
+ * que «es malo», y en los estrenos de la semana es el caso habitual: con
+ * `includeUnrated` el título se deja pasar marcado como tal, y la recopilación
+ * de la semana siguiente ya decidirá con la nota delante.
  */
-export function matchesMinCritic(view: TitleView, minCritic: number | undefined): boolean {
+export function matchesMinCritic(
+  view: TitleView,
+  minCritic: number | undefined,
+  includeUnrated = false,
+): boolean {
   if (minCritic === undefined || minCritic <= 0) return true;
-  if (view.critic.score === null) return false;
+  if (view.critic.score === null) return includeUnrated;
   return view.critic.score >= minCritic;
+}
+
+/**
+ * Aplica el listón de calidad guardado a una consulta que no trae uno propio
+ * (FR-053).
+ *
+ * El criterio es la **ausencia**, no el valor: si el usuario elige «cualquier
+ * nota» en la barra de filtros, eso llega como `0` y manda sobre los ajustes.
+ * Solo cuando no ha elegido nada se hereda el listón guardado.
+ */
+export function applyQualityFloor(
+  query: CatalogQuery,
+  quality: { minCritic: number; includeUnrated: boolean },
+): CatalogQuery {
+  if (query.minCritic !== undefined) return query;
+  if (quality.minCritic <= 0) return query;
+  return { ...query, minCritic: quality.minCritic, includeUnrated: quality.includeUnrated };
 }
 
 export function filterViews(
@@ -71,7 +97,7 @@ export function filterViews(
     if (mediaType !== 'all' && view.title.mediaType !== mediaType) return false;
     if (genres && !view.title.genres.some((g) => genres.has(g))) return false;
     if (platforms && !view.title.platforms.some((p) => platforms.has(p.id))) return false;
-    if (!matchesMinCritic(view, query.minCritic)) return false;
+    if (!matchesMinCritic(view, query.minCritic, query.includeUnrated ?? false)) return false;
     if (!matchesStatus(view, status)) return false;
     if (!matchesText(view, text)) return false;
     return true;
@@ -148,15 +174,30 @@ export function paginate<T>(
 }
 
 /** Valores disponibles para poblar los desplegables de filtro (FR-029). */
+/**
+ * Recuentos para la barra de filtros (FR-029, FR-053).
+ *
+ * Cuando hay listón de calidad, los recuentos cuentan lo que se va a ver, no lo
+ * que hay guardado: un «(12)» junto a una semana donde solo se pintan tres es
+ * un dato que miente. `totalTitles` sí sigue siendo el catálogo entero, y
+ * `belowFloor` dice cuántos quedan fuera, para poder decirlo en pantalla en
+ * lugar de que desaparezcan sin explicación.
+ */
 export function buildFacets(
   views: readonly TitleView[],
   currentWeekValue: string,
+  floor?: { minCritic: number; includeUnrated: boolean },
 ): CatalogFacets {
   const genres = new Map<string, number>();
   const platforms = new Map<string, number>();
   const weeks = new Map<string, number>();
 
-  for (const view of views) {
+  const all = views;
+  const visible = floor
+    ? views.filter((view) => matchesMinCritic(view, floor.minCritic, floor.includeUnrated))
+    : views;
+
+  for (const view of visible) {
     for (const genre of view.title.genres) {
       genres.set(genre, (genres.get(genre) ?? 0) + 1);
     }
@@ -177,6 +218,8 @@ export function buildFacets(
       .map(([value, count]) => ({ value, count }))
       .sort((a, b) => b.value.localeCompare(a.value)),
     currentWeek: currentWeekValue,
-    totalTitles: views.length,
+    totalTitles: all.length,
+    visibleTitles: visible.length,
+    belowFloor: all.length - visible.length,
   };
 }

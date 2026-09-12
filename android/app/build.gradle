@@ -7,8 +7,8 @@ android {
         applicationId "es.estrenos.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 10200
-        versionName "1.2.0"
+        versionCode 10201
+        versionName "1.2.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,7 +16,30 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Clave de firma fija y versionada (ADR-017).
+    //
+    // Sin esto, Gradle genera una clave nueva en cada máquina y en cada
+    // ejecución de CI, así que cada APK publicado salía con una firma distinta
+    // y Android se negaba a instalar la actualización encima de la anterior.
+    // Las versiones 1.0.0 a 1.2.0 salieron así, cada una con su propia firma.
+    //
+    // La contraseña está a la vista a propósito: es la convención de las claves
+    // de depuración de Android y no protege nada. Lo que da es una firma
+    // estable, que es justo lo que faltaba. La firma de publicación de verdad,
+    // con clave secreta, sigue siendo la tarea T093.
+    signingConfigs {
+        debug {
+            storeFile file('../estrenos-debug.keystore')
+            storePassword 'android'
+            keyAlias 'estrenos'
+            keyPassword 'android'
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

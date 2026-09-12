@@ -133,6 +133,9 @@ export function parseCatalogQuery(input: unknown): CatalogQuery {
     query.minCritic = Math.min(10, Math.max(0, raw.minCritic));
   }
 
+  const includeUnrated = optionalBoolean(raw.includeUnrated, 'La inclusión de los no puntuados');
+  if (includeUnrated !== undefined) query.includeUnrated = includeUnrated;
+
   const status = oneOf(raw.status, STATUSES, 'El estado');
   if (status !== undefined) query.status = status;
 
@@ -232,6 +235,9 @@ export function parseSettingsPatch(input: unknown): Partial<Settings> {
   }
   if (raw.cacheTtlHours !== undefined) {
     patch.cacheTtlHours = raw.cacheTtlHours as number;
+  }
+  if (raw.quality !== undefined) {
+    patch.quality = asObject(raw.quality, 'El listón de calidad') as unknown as Settings['quality'];
   }
 
   return patch;

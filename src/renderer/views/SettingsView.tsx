@@ -41,6 +41,7 @@ export function SettingsView({
       <div className="settings-stack">
         <ApiKeysSection secrets={secrets} onSave={onSaveSecrets} />
         <ScheduleSection settings={settings} onUpdate={onUpdate} />
+        <QualitySection settings={settings} onUpdate={onUpdate} />
         <PlatformsSection settings={settings} onUpdate={onUpdate} />
         <CriteriaSection settings={settings} onUpdate={onUpdate} />
         <SamplesSection onReload={onReload} />
@@ -309,6 +310,75 @@ function ScheduleSection({
           </span>
         </div>
       </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+/** Listón de calidad del catálogo (FR-053). */
+function QualitySection({
+  settings,
+  onUpdate,
+}: {
+  settings: Settings;
+  onUpdate: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const { minCritic, includeUnrated } = settings.quality;
+
+  return (
+    <section className="section">
+      <h4 className="section__title">Qué entra en el catálogo</h4>
+      <p className="field__hint" style={{ marginBottom: 12 }}>
+        El agente recopila todos los estrenos de las plataformas activas, pero solo se muestran
+        los que llegan a esta nota. Lo que no llega se guarda igualmente: si dentro de unas
+        semanas sube de nota, aparece sin tener que volver a buscarlo.
+      </p>
+
+      <div className="field">
+        <span className="field__label">Nota mínima de la crítica</span>
+        <div className="field__row">
+          <select
+            className="select"
+            value={String(minCritic)}
+            onChange={(event) =>
+              void onUpdate({
+                quality: { ...settings.quality, minCritic: Number(event.target.value) },
+              })
+            }
+            aria-label="Nota mínima de la crítica"
+          >
+            <option value="0">Todas: sin listón</option>
+            <option value="6">6 o más</option>
+            <option value="7">7 o más — las buenas</option>
+            <option value="7.5">7,5 o más</option>
+            <option value="8">8 o más — solo lo excelente</option>
+          </select>
+          <span className="field__hint">
+            sobre 10, combinando IMDb, Rotten Tomatoes, Metacritic y TMDB
+          </span>
+        </div>
+      </div>
+
+      <label className="toggle" style={{ marginTop: 10 }}>
+        <input
+          type="checkbox"
+          checked={includeUnrated}
+          disabled={minCritic <= 0}
+          onChange={(event) =>
+            void onUpdate({
+              quality: { ...settings.quality, includeUnrated: event.target.checked },
+            })
+          }
+        />
+        Enseñar también los que todavía no tienen nota
+      </label>
+      <p className="field__hint" style={{ marginTop: 6 }}>
+        Un estreno de esta misma semana casi nunca tiene nota todavía: aún no hay ficha en IMDb ni
+        críticas publicadas. Descartarlo por «no llega al mínimo» sería dar por malo algo que
+        nadie ha visto aún. Si lo desactivas, el catálogo será más corto y verás los estrenos con
+        una semana o dos de retraso, cuando ya tengan nota.
+      </p>
     </section>
   );
 }

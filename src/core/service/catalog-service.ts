@@ -80,9 +80,12 @@ export class CatalogService {
     return title ? this.buildView(title) : null;
   }
 
-  facets(now: Date = new Date()): CatalogFacets {
+  facets(
+    now: Date = new Date(),
+    floor?: { minCritic: number; includeUnrated: boolean },
+  ): CatalogFacets {
     const views = this.catalog.all().map((title) => this.buildView(title));
-    return buildFacets(views, currentWeek(now));
+    return buildFacets(views, currentWeek(now), floor);
   }
 
   stats(): WatchedStats {

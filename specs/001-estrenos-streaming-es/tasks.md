@@ -133,6 +133,15 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T146** Etapas del agente nombradas en castellano en la barra de progreso y en el historial → `renderer/format.ts`
 - [x] **T147** La versión de Android deja de derivar a mano: se sincroniza desde `package.json` *(FR-043)* → `scripts/sync-android-version.mjs`
 
+## Fase 14 — Que se pueda actualizar y que el catálogo no sea un vertedero (v1.2.1)
+
+- [x] **T150** Clave de firma fija y versionada: los APK pasan a ser actualizables *(FR-043, ADR-017)* → `android/estrenos-debug.keystore`
+- [x] **T151** Listón de calidad guardado en los ajustes *(FR-053)* → `core/store/settings.ts`, `core/domain/filters.ts`
+- [x] **T152** El listón se aplica a toda consulta que no traiga una nota mínima propia *(FR-053)* → `applyQualityFloor`
+- [x] **T153** Los recuentos de la barra de filtros cuentan lo que se ve, no lo guardado *(FR-053)* → `buildFacets`
+- [x] **T154** Aviso de cuántos títulos esconde el listón, con atajo para verlos *(FR-053)* → `renderer/views/Browse.tsx`
+- [x] **T155** Decisión explícita sobre los títulos que nadie ha puntuado todavía *(FR-053, Art. IV.2)*
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

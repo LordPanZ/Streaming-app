@@ -62,6 +62,19 @@ export function Browse(props: BrowseProps) {
         </Banner>
       )}
 
+      {/*
+        El listón de calidad esconde títulos que sí están guardados (FR-053).
+        Decirlo aquí evita la pregunta «¿por qué salen tan pocos?», y el botón
+        deja verlos sin tener que ir a Ajustes a desactivar nada.
+      */}
+      {(facets?.belowFloor ?? 0) > 0 && query.minCritic === undefined && (
+        <Banner tone="info" actionLabel="Ver también esos" onAction={() => onQueryChange({ minCritic: 0 })}>
+          {facets?.belowFloor === 1
+            ? '1 título recopilado no llega a tu nota mínima y no se está mostrando.'
+            : `${facets?.belowFloor} títulos recopilados no llegan a tu nota mínima y no se están mostrando.`}
+        </Banner>
+      )}
+
       <FilterBar
         query={query}
         facets={facets}

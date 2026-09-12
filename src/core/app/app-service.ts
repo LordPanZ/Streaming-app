@@ -37,6 +37,7 @@ import {
   parseVerifySecret,
   ValidationError,
 } from '../../shared/validate';
+import { applyQualityFloor } from '../domain/filters';
 import { sanitizeScores } from '../domain/criteria';
 import { buildSampleCatalog } from '../domain/sample-catalog';
 import { sanitizeMessage } from '../providers/http';
@@ -97,7 +98,11 @@ export class AppService {
   // --- Catálogo ------------------------------------------------------------
 
   catalogQuery(input: unknown): CatalogPage {
-    return this.container.service.query(parseCatalogQuery(input));
+    const query = applyQualityFloor(
+      parseCatalogQuery(input),
+      this.container.settings.get().quality,
+    );
+    return this.container.service.query(query);
   }
 
   catalogGet(input: unknown): TitleView | null {
@@ -106,7 +111,11 @@ export class AppService {
   }
 
   catalogFacets(): CatalogFacets {
-    return this.container.service.facets();
+    const { minCritic, includeUnrated } = this.container.settings.get().quality;
+    return this.container.service.facets(
+      undefined,
+      minCritic > 0 ? { minCritic, includeUnrated } : undefined,
+    );
   }
 
   // --- Valoraciones --------------------------------------------------------

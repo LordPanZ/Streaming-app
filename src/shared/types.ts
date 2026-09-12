@@ -228,6 +228,27 @@ export interface WindowSettings {
   graceDays: number;
 }
 
+/**
+ * Listón de calidad del catálogo (FR-053).
+ *
+ * Se guarda en los ajustes en vez de vivir solo en la barra de filtros porque
+ * el usuario lo pone una vez y espera que mande siempre, también al abrir la
+ * aplicación al día siguiente.
+ */
+export interface QualitySettings {
+  /** Índice de crítica mínimo, 0–10. `0` desactiva el listón. */
+  minCritic: number;
+  /**
+   * Qué hacer con lo que todavía nadie ha puntuado.
+   *
+   * Un estreno de esta semana suele no tener ficha en IMDb ni nota de la
+   * crítica: descartarlo por «no llega al mínimo» sería afirmar algo que no
+   * sabemos (Art. IV.2). Con `true` se muestra marcado como «sin nota todavía»
+   * y la recopilación de la semana siguiente ya decide con la nota en la mano.
+   */
+  includeUnrated: boolean;
+}
+
 export interface Settings {
   schemaVersion: number;
   schedule: ScheduleSettings;
@@ -237,6 +258,7 @@ export interface Settings {
   criteria: RatingCriterion[];
   revalidateTrailerWeeks: number;
   cacheTtlHours: number;
+  quality: QualitySettings;
 }
 
 // ---------------------------------------------------------------------------
@@ -255,6 +277,11 @@ export interface CatalogQuery {
   /** `YYYY-Www`, `current` o `all`. */
   week?: string;
   minCritic?: number;
+  /**
+   * Si los títulos sin índice de crítica pasan el mínimo (FR-053). Solo tiene
+   * efecto junto a `minCritic`. Ausente = lo que digan los ajustes.
+   */
+  includeUnrated?: boolean;
   status?: WatchStatusFilter;
   sort?: SortField;
   order?: SortOrder;
@@ -284,7 +311,12 @@ export interface CatalogFacets {
   platforms: Array<{ value: string; name: string; count: number }>;
   weeks: Array<{ value: string; count: number }>;
   currentWeek: string;
+  /** Títulos guardados en el catálogo, sin aplicar el listón de calidad. */
   totalTitles: number;
+  /** Los que pasan el listón: los que se van a ver (FR-053). */
+  visibleTitles: number;
+  /** Los que quedan fuera por no llegar al mínimo (FR-053). */
+  belowFloor: number;
 }
 
 export interface WatchedStats {

@@ -57,7 +57,7 @@ automático nada que no lo esté.
 | FR-040 Persistencia local atómica | `platform/node/node-storage.ts` (PC), `platform/capacitor/capacitor-storage.ts` (Android) | `unit/stores.test.ts` → «escribe de forma atómica»; `unit/capacitor-storage.test.ts` → «recupera la copia si el documento principal quedó a medio escribir» | Automática **en el PC**; en Android la garantía es menor y se declara en ADR-013 |
 | FR-041 Aplicación descargable para PC | `electron-builder.yml`, `.github/workflows/release.yml` | AppImage de Linux construido y verificado en este entorno (104 MB, arranca limpio); instaladores de Windows, macOS y Linux construidos en integración continua | Construido, no instalado en Windows ni macOS |
 | FR-042 Primer arranque sin claves | `renderer/views/Browse.tsx`, `core/app/app-service.ts` (`NO_API_KEY`) | Lista manual §3, punto 1 | Manual |
-| FR-043 Aplicación para Android | `capacitor.config.ts`, `android/`, `.github/workflows/android.yml` | APK construido en integración continua tras pasar tipos, pruebas y la prueba de humo del renderizado | Construido; instalado en un móvil y corregido tras fallar allí (v1.0.1) |
+| FR-043 Aplicación para Android | `capacitor.config.ts`, `android/`, `.github/workflows/android.yml`, `android/estrenos-debug.keystore` (ADR-017) | APK construido en integración continua tras pasar tipos, pruebas y la prueba de humo del renderizado; firma comparada entre versiones publicadas | Construido; instalado en un móvil y corregido dos veces tras fallar allí (pantalla negra en v1.0.1, firma cambiante hasta v1.2.0) |
 | FR-044 · el puente en el móvil | `renderer/api.ts` | `unit/renderer-api.test.ts` (7 casos) y `scripts/smoke/main.cjs` | Automática |
 | FR-044 Misma lógica en ambas plataformas | `core/app/app-service.ts`, `platform/capacitor/local-api.ts` | `unit/architecture.test.ts` (núcleo sin importaciones externas); el servicio es el único camino en las dos | Automática (estructura) |
 | FR-045 Interfaz adaptada al móvil | `renderer/styles/global.css` (consultas de medios) | Medición del ancho del documento a 412 px y a 360 px, sin desbordamiento | Automática (medida) + manual |
@@ -67,6 +67,7 @@ automático nada que no lo esté.
 | FR-049 Enlace a la plataforma | `renderer/components/TitleDetail.tsx` | Lista manual §3, punto 5; solo se ofrece si la plataforma trae enlace | Manual |
 | FR-050 Primer arranque guiado | `renderer/views/Onboarding.tsx`, `renderer/App.tsx` | Lista manual §3, punto 1 | Manual |
 | FR-052 Reconocimiento de la clave | `core/domain/api-keys.ts`, `core/providers/tmdb.ts` | `unit/api-keys.test.ts` (9 casos) y `contract/tmdb.test.ts` → «explica la confusión entre la clave v3 y el testigo v4»; comprobado además en la aplicación en marcha | Automática |
+| FR-053 Listón de calidad del catálogo | `core/domain/filters.ts` (`applyQualityFloor`, `matchesMinCritic`, `buildFacets`), `core/store/settings.ts`, `renderer/views/SettingsView.tsx`, `renderer/views/Browse.tsx` | `unit/filters.test.ts` → bloques «applyQualityFloor» y «buildFacets con listón de calidad»; `unit/stores.test.ts` → «listón de calidad»; `unit/validate.test.ts` | Automática |
 | FR-051 Datos de ejemplo | `core/domain/sample-catalog.ts`, `core/agent/stages/persist.ts` | `unit/sample-catalog.test.ts` (14 casos) y `unit/pipeline.test.ts` → «la primera recopilación real retira los títulos de ejemplo» | Automática |
 
 ## 2. Requisitos no funcionales
@@ -153,6 +154,20 @@ Lección aplicada a la matriz: probar que un mecanismo funciona no prueba que
 alguien lo use. Cuando una fila cubre un límite, un caché o un reintento,
 conviene que haya otra que lo ejercite de punta a punta.
 
+El tercero lo encontró el usuario, no la matriz: la actualización no se dejaba
+instalar. La fila de FR-043 decía «APK construido en integración continua», y
+era verdad. Lo que nunca se comprobó es si ese APK se podía instalar **encima
+del anterior**, que es lo que hace un usuario a partir de la segunda versión.
+
+No se podía: cada ejecución de CI fabricaba su propia clave de firma, así que
+las cuatro versiones publicadas salieron con cuatro firmas distintas y Android
+rechaza una actualización firmada con otra clave. Se comprobó comparando el
+certificado de los APK ya publicados, que seguían disponibles.
+
+Lección aplicada a la matriz: «se construye» y «se instala» son dos cosas, y
+«se instala» y «se actualiza» son otras dos. Un artefacto de distribución tiene
+un ciclo de vida propio que las pruebas de la aplicación no tocan.
+
 ## 4. Requisitos sin cobertura automática
 
 Se declaran aquí para que consten, en lugar de darlos por probados:
@@ -162,7 +177,7 @@ Se declaran aquí para que consten, en lugar de darlos por probados:
 | FR-032, FR-034, FR-042 | Presentación de la interfaz; no hay banco de pruebas de componentes | T094 |
 | FR-035 (persistencia cifrada) | `safeStorage` exige un proceso de Electron en ejecución | T095 |
 | FR-041 | El empaquetado real solo se verifica al ejecutar `electron-builder` en cada sistema. Comprobado el AppImage de Linux; Windows y macOS solo en integración continua | T096 |
-| FR-043 | El APK se instaló en un móvil y falló con pantalla negra; corregido y cubierto por prueba de humo, pero la versión corregida tampoco se ha instalado desde este entorno | T097 |
+| FR-043 | El APK se instaló en un móvil y falló dos veces: pantalla negra (v1.0.1) y firma distinta en cada publicación, que impedía actualizar (hasta v1.2.0). Las dos están corregidas, pero desde este entorno no se puede instalar nada en un móvil: la comprobación sigue siendo del usuario | T097 |
 | FR-045 | Verificado midiendo el ancho del documento en un navegador emulando un móvil, no en un dispositivo real | T097 |
 | NFR-005 | Depende de la red real y del tamaño del catálogo de cada semana | — |
 | NFR-007 | Configuración de `BrowserWindow`; se verifica a mano (punto 8) | T094 |

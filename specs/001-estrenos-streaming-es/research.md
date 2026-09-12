@@ -389,3 +389,51 @@ tiene por qué sufrirlo.
 peticiones de una en una a hacerlo de cuatro en cuatro. El número de peticiones
 no cambia —se comprueba en las pruebas—, solo el tiempo que se tarda en
 gastarlas.
+
+---
+
+## ADR-017 — Clave de firma fija y versionada para el APK
+
+**Contexto.** Android identifica una aplicación por su paquete **y su firma**.
+Una actualización solo se instala encima de la anterior si va firmada con la
+misma clave; si la firma cambia, el sistema se niega y solo queda desinstalar,
+que borra los datos del usuario.
+
+El contenedor de Android que genera Capacitor no trae clave: Gradle fabrica una
+de depuración al vuelo la primera vez que la necesita. En una máquina de
+desarrollo eso pasa una vez y la clave persiste. En un ejecutor de CI, que nace
+limpio en cada ejecución, **pasa cada vez**.
+
+Se comprobó sobre los APK ya publicados, comparando el certificado de cada uno:
+
+```
+v1.0.1  58bc9a98…
+v1.1.0  eb803274…
+v1.1.1  757c8887…
+v1.2.0  67ca63d1…
+```
+
+Cuatro versiones, cuatro firmas distintas. Ninguna se podía instalar encima de
+otra. El fallo estuvo presente desde la primera entrega y no lo detectó nadie
+porque las pruebas comprueban lo que hace la aplicación, no lo que hace el
+instalador del sistema operativo.
+
+**Decisión.** Se versiona una clave de firma en el repositorio
+(`android/estrenos-debug.keystore`) y el tipo de compilación `debug` la usa
+explícitamente. Todos los APK publicados pasan a compartir firma.
+
+**Sobre la contraseña a la vista.** Es la convención de las claves de depuración
+de Android (`android`), y está ahí a propósito: esta clave no protege nada, solo
+da **continuidad de identidad**. Lo que concede a quien la tenga es poder
+compilar un APK que Android aceptaría como actualización de este; para una
+aplicación que se instala a mano desde una publicación de GitHub, y no desde una
+tienda, el intercambio es asumible y se declara aquí en lugar de disimularlo.
+
+**Lo que no resuelve.** La firma de publicación de verdad —clave secreta fuera
+del repositorio, guardada como secreto del repositorio— sigue siendo la tarea
+T093, y es requisito si algún día esto va a una tienda.
+
+**Consecuencia inmediata para quien ya tenga la aplicación.** La versión
+instalada lleva una de las firmas viejas, así que la primera actualización
+todavía obliga a desinstalar. A partir de ahí, todas las siguientes se instalan
+encima.

@@ -355,6 +355,29 @@ una marca visible y se pueden borrar de una vez.
 - *Criterio:* Dada una recopilación real posterior, cuando termina, entonces los
   títulos de ejemplo ya no están: no se mezclan con los reales.
 
+**FR-053 — Listón de calidad del catálogo.**
+El usuario puede fijar una nota mínima de la crítica por debajo de la cual los
+títulos no se muestran. El listón se guarda en los ajustes y manda sobre todas
+las consultas, no solo sobre la sesión en curso.
+
+Lo que no llega al mínimo **no se borra**: sigue en el almacén, porque un
+estreno sin nota esta semana puede tenerla la que viene, y la recopilación
+semanal la rellena sin volver a buscarlo.
+
+- *Criterio:* Dado un listón de 7, cuando el usuario abre la aplicación al día
+  siguiente, entonces el catálogo sigue mostrando solo lo que llega a 7.
+- *Criterio:* Dado un listón activo, cuando el usuario elige «cualquier nota» en
+  la barra de filtros, entonces se ven todos: la elección explícita manda sobre
+  el ajuste guardado.
+- *Criterio:* Dados títulos ocultos por el listón, cuando el usuario mira el
+  catálogo, entonces se le dice cuántos hay y puede verlos sin ir a Ajustes.
+- *Criterio:* Dado un título que nadie ha puntuado todavía, cuando hay listón,
+  entonces se muestra o no según la opción explícita del usuario, y nunca se
+  descarta por «no llega al mínimo»: eso sería afirmar algo que no se sabe.
+- *Criterio:* Dados unos ajustes guardados por una versión anterior, sin este
+  campo, cuando se cargan, entonces se adopta el valor por defecto y la
+  aplicación arranca con normalidad.
+
 ### 5.9 Android
 
 **FR-043 — Aplicación para Android.**
@@ -362,6 +385,9 @@ Se distribuye un APK instalable en un móvil Android, con las mismas funciones
 que la versión de PC: recopilación semanal, notas, géneros, tráiler, marcar
 como visto y valorar por criterios.
 
+- *Criterio:* Dada una versión ya instalada, cuando el usuario instala una
+  posterior, entonces se instala **encima**, conservando claves y valoraciones:
+  los APK publicados se firman siempre con la misma clave (ADR-017).
 - *Criterio:* Dado un móvil con Android 8 o superior, cuando se instala el APK y
   se configura la clave de TMDB, entonces la recopilación funciona y los
   estrenos aparecen igual que en el PC.

@@ -12,7 +12,7 @@ import { buildWatchedStats, RatingsStore } from '../../src/core/store/ratings';
 import { SettingsStore, defaultSettings, sanitizeSettings } from '../../src/core/store/settings';
 import { RunsStore, MAX_RUNS } from '../../src/core/store/runs';
 import { defaultCriteria } from '../../src/core/domain/criteria';
-import type { AgentRun } from '../../src/shared/types';
+import type { AgentRun, Settings } from '../../src/shared/types';
 import { makeRatings, makeTitle } from '../helpers/factories';
 
 let dir: string;
@@ -410,6 +410,38 @@ describe('sanitizeSettings', () => {
   it('descarta fechas no válidas del calendario', () => {
     const result = sanitizeSettings({ schedule: { ...base.schedule, nextRunAt: 'mañana' } }, base);
     expect(result.schedule.nextRunAt).toBe(base.schedule.nextRunAt);
+  });
+
+  describe('listón de calidad (FR-053)', () => {
+    it('viene apagado de fábrica: la primera vez se ve lo que hay', () => {
+      expect(base.quality).toEqual({ minCritic: 0, includeUnrated: true });
+    });
+
+    it('recorta la nota al rango 0-10 con un decimal', () => {
+      expect(sanitizeSettings({ quality: { minCritic: 99, includeUnrated: true } }, base).quality
+        .minCritic).toBe(10);
+      expect(sanitizeSettings({ quality: { minCritic: -3, includeUnrated: true } }, base).quality
+        .minCritic).toBe(0);
+      expect(sanitizeSettings({ quality: { minCritic: 7.46, includeUnrated: true } }, base).quality
+        .minCritic).toBe(7.5);
+    });
+
+    it('ante basura conserva el valor anterior en vez de reiniciarlo', () => {
+      const previous = { ...base, quality: { minCritic: 8, includeUnrated: false } };
+      const result = sanitizeSettings(
+        { quality: { minCritic: 'mucho', includeUnrated: 'sí' } as never },
+        previous,
+      );
+      expect(result.quality).toEqual({ minCritic: 8, includeUnrated: false });
+    });
+
+    it('unos ajustes guardados sin listón migran al valor por defecto', () => {
+      // Es el caso de quien actualiza desde una versión anterior: el ajuste no
+      // existía en su archivo y no puede hacer que la aplicación no arranque.
+      const legacy = { ...base } as Partial<Settings>;
+      delete legacy.quality;
+      expect(sanitizeSettings(legacy, base).quality).toEqual(base.quality);
+    });
   });
 });
 
