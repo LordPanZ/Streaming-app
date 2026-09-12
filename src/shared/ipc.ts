@@ -28,6 +28,7 @@ export const IPC = {
   catalogGet: 'catalog:get',
   catalogFacets: 'catalog:facets',
   ratingsSetWatched: 'ratings:set-watched',
+  ratingsSetInterested: 'ratings:set-interested',
   ratingsSetScores: 'ratings:set-scores',
   ratingsClear: 'ratings:clear',
   ratingsStats: 'ratings:stats',
@@ -92,6 +93,11 @@ export interface SetWatchedInput {
   platform?: string | null;
 }
 
+export interface SetInterestedInput {
+  titleId: string;
+  interested: boolean;
+}
+
 export interface SetScoresInput {
   titleId: string;
   scores: Record<string, number>;
@@ -131,6 +137,7 @@ export interface IpcApi {
   };
   ratings: {
     setWatched(input: SetWatchedInput): Promise<IpcResult<UserRating>>;
+    setInterested(input: SetInterestedInput): Promise<IpcResult<UserRating>>;
     setScores(input: SetScoresInput): Promise<IpcResult<UserRating>>;
     clear(titleId: string): Promise<IpcResult<{ ok: true }>>;
     stats(): Promise<IpcResult<WatchedStats>>;

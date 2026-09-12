@@ -407,6 +407,25 @@ a {
   font-weight: 700;
 }
 
+/*
+ * Distintivo de «me interesa» (FR-054). Ocupa el mismo sitio que el de visto
+ * porque nunca coinciden: lo visto sale de la lista de pendientes.
+ */
+.card__interested {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(250, 204, 21, 0.92);
+  color: #2a1f00;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .card__type {
   position: absolute;
   top: 8px;

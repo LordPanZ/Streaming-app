@@ -18,6 +18,7 @@ interface BrowseProps {
   onReset: () => void;
   onOpen: (id: string) => void;
   onToggleWatched: (id: string, watched: boolean) => void;
+  onToggleInterested: (id: string, interested: boolean) => void;
   onGoToSettings: () => void;
   onRunAgent: () => void;
 }
@@ -35,6 +36,7 @@ export function Browse(props: BrowseProps) {
     onReset,
     onOpen,
     onToggleWatched,
+    onToggleInterested,
     onGoToSettings,
     onRunAgent,
   } = props;
@@ -115,6 +117,7 @@ export function Browse(props: BrowseProps) {
               view={view}
               onOpen={onOpen}
               onToggleWatched={onToggleWatched}
+              onToggleInterested={onToggleInterested}
             />
           ))}
         </div>

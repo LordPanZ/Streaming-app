@@ -120,6 +120,19 @@ export function App() {
     [selectedId, loadSelected],
   );
 
+  const toggleInterested = useCallback(
+    async (id: string, interested: boolean) => {
+      try {
+        await unwrap(api.ratings.setInterested({ titleId: id, interested }));
+        if (selectedId === id) await loadSelected(id);
+        setActionError(null);
+      } catch (caught) {
+        setActionError(describeApiError(caught));
+      }
+    },
+    [selectedId, loadSelected],
+  );
+
   const saveScores = useCallback(
     async (scores: Record<string, number>, notes: string) => {
       if (!selectedId) return;
@@ -203,9 +216,9 @@ export function App() {
             <input
               type="text"
               value={searchDraft}
-              placeholder="Buscar por título…"
+              placeholder="Título, género, plataforma, actor…"
               onChange={(event) => setSearchDraft(event.target.value)}
-              aria-label="Buscar por título"
+              aria-label="Buscar por título, género, plataforma, reparto o dirección"
             />
           </div>
 
@@ -301,12 +314,21 @@ export function App() {
               }}
               onOpen={setSelectedId}
               onToggleWatched={(id, watched) => void toggleWatched(id, watched)}
+              onToggleInterested={(id, interested) => void toggleInterested(id, interested)}
               onGoToSettings={() => goTo('settings')}
               onRunAgent={() => void agent.run()}
             />
           )}
 
-          {view === 'watched' && <Watched onGoToWeek={() => goTo('week')} />}
+          {view === 'watched' && (
+            <Watched
+              onGoToWeek={() => goTo('week')}
+              onGoToInterested={() => {
+                goTo('catalog');
+                catalog.patchQuery({ week: 'all', status: 'interested' });
+              }}
+            />
+          )}
 
           {view === 'runs' && <Runs runs={agent.runs} />}
 
@@ -341,6 +363,7 @@ export function App() {
           onSaveScores={saveScores}
           onClearRating={clearRating}
           onToggleWatched={(watched) => toggleWatched(selected.title.id, watched)}
+          onToggleInterested={(interested) => toggleInterested(selected.title.id, interested)}
         />
       )}
     </div>

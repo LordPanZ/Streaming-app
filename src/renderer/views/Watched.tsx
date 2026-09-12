@@ -6,7 +6,13 @@ import { api, describeApiError, unwrap } from '../api';
 import { formatScore, pluralize } from '../format';
 import { Banner, EmptyState } from '../components/EmptyState';
 
-export function Watched({ onGoToWeek }: { onGoToWeek: () => void }) {
+export function Watched({
+  onGoToWeek,
+  onGoToInterested,
+}: {
+  onGoToWeek: () => void;
+  onGoToInterested: () => void;
+}) {
   const [stats, setStats] = useState<WatchedStats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,10 +31,23 @@ export function Watched({ onGoToWeek }: { onGoToWeek: () => void }) {
   if (error) return <Banner tone="error">{error}</Banner>;
   if (!stats) return <EmptyState icon="⏳" title="Cargando…" text="Calculando tus estadísticas." />;
 
+  /*
+    La lista de pendientes vive aquí aunque la vista se llame «Mis vistas»:
+    es la sección de lo personal, y es donde se busca «lo que tenía apuntado»
+    (FR-054). El filtro del catálogo sigue siendo el mismo, solo se llega antes.
+  */
+  const pendingBanner = stats.totalInterested > 0 && (
+    <Banner tone="info" actionLabel="Ver mi lista" onAction={onGoToInterested}>
+      Tienes {pluralize(stats.totalInterested, 'título apuntado', 'títulos apuntados')} como «me
+      interesa» y todavía sin ver.
+    </Banner>
+  );
+
   if (stats.totalWatched === 0) {
     return (
       <>
         <h1 className="page-title">Mis vistas</h1>
+        {pendingBanner}
         <EmptyState
           icon="📼"
           title="Aún no has marcado nada como visto"
@@ -50,6 +69,8 @@ export function Watched({ onGoToWeek }: { onGoToWeek: () => void }) {
         {pluralize(stats.totalWatched, 'título visto', 'títulos vistos')} ·{' '}
         {pluralize(stats.totalRated, 'valorado', 'valorados')}
       </p>
+
+      {pendingBanner}
 
       <div className="stats-grid">
         <div className="stat">

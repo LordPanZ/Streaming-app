@@ -30,6 +30,7 @@ import {
   parseImportInput,
   parseRunsLimit,
   parseSecrets,
+  parseSetInterested,
   parseSetScores,
   parseSetWatched,
   parseSettingsPatch,
@@ -126,6 +127,13 @@ export class AppService {
       watchedAt: parsed.watchedAt ?? null,
       platform: parsed.platform ?? null,
     });
+    this.emit({ type: 'catalog:changed', payload: { reason: 'rating' } });
+    return rating;
+  }
+
+  async ratingsSetInterested(input: unknown): Promise<UserRating> {
+    const parsed = parseSetInterested(input);
+    const rating = await this.container.ratings.setInterested(parsed.titleId, parsed.interested);
     this.emit({ type: 'catalog:changed', payload: { reason: 'rating' } });
     return rating;
   }

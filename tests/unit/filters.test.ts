@@ -7,6 +7,7 @@ import {
   compareViews,
   filterViews,
   matchesMinCritic,
+  matchesStatus,
   matchesText,
   paginate,
   sortViews,
@@ -55,6 +56,57 @@ describe('matchesText (FR-031)', () => {
   });
 });
 
+describe('matchesText sobre todos los campos (FR-055)', () => {
+  const target = view({
+    title: 'La casa vacía',
+    originalTitle: 'The Empty House',
+    year: 2026,
+    genres: ['Terror', 'Suspense'],
+    platforms: [{ id: 'netflix', name: 'Netflix', providerId: 8, logoUrl: null, link: null }],
+    cast: ['Penélope Cruz', 'Javier Bardem'],
+    directors: ['Alejandro Amenábar'],
+    overview: 'Una historia de fantasmas contada en un caserón abandonado.',
+  });
+
+  it('encuentra por género', () => {
+    expect(matchesText(target, 'terror')).toBe(true);
+  });
+
+  it('encuentra por plataforma', () => {
+    expect(matchesText(target, 'netflix')).toBe(true);
+  });
+
+  it('encuentra por reparto y por dirección, con tildes o sin ellas', () => {
+    expect(matchesText(target, 'bardem')).toBe(true);
+    expect(matchesText(target, 'penelope')).toBe(true);
+    expect(matchesText(target, 'amenabar')).toBe(true);
+  });
+
+  it('encuentra por año', () => {
+    expect(matchesText(target, '2026')).toBe(true);
+  });
+
+  it('encuentra por tipo', () => {
+    expect(matchesText(target, 'pelicula')).toBe(true);
+    expect(matchesText(view({ mediaType: 'series' }), 'serie')).toBe(true);
+  });
+
+  it('cruza campos distintos: «netflix terror» exige las dos cosas', () => {
+    // Es lo que hace útil buscar por varios términos: cada palabra puede
+    // cumplirse en un campo diferente.
+    expect(matchesText(target, 'netflix terror')).toBe(true);
+    expect(matchesText(target, 'netflix comedia')).toBe(false);
+    expect(matchesText(target, 'filmin terror')).toBe(false);
+  });
+
+  it('no busca en la sinopsis, y es deliberado', () => {
+    // Con la sinopsis dentro, «historia» o «una» devolverían medio catálogo y
+    // el buscador dejaría de servir para encontrar algo concreto.
+    expect(matchesText(target, 'fantasmas')).toBe(false);
+    expect(matchesText(target, 'caseron')).toBe(false);
+  });
+});
+
 describe('matchesMinCritic (FR-029, FR-014)', () => {
   it('un título sin índice no pasa un mínimo: no podemos afirmar que lo cumpla', () => {
     expect(matchesMinCritic(view(), 7)).toBe(false);
@@ -90,9 +142,8 @@ describe('matchesMinCritic (FR-029, FR-014)', () => {
     ];
 
     expect(filterViews(views, { minCritic: 7 }).map((v) => v.title.id)).toEqual(['buena']);
-    expect(filterViews(views, { minCritic: 7, includeUnrated: true }).map((v) => v.title.id)).toEqual(
-      ['buena', 'sin-nota'],
-    );
+    const relaxed = filterViews(views, { minCritic: 7, includeUnrated: true });
+    expect(relaxed.map((v) => v.title.id)).toEqual(['buena', 'sin-nota']);
   });
 });
 
@@ -157,6 +208,36 @@ describe('buildFacets con listón de calidad (FR-053)', () => {
     expect(facets.visibleTitles).toBe(2);
     expect(facets.belowFloor).toBe(1);
     expect(facets.genres.map((g) => g.value).sort()).toEqual(['Drama', 'Terror']);
+  });
+});
+
+describe('matchesStatus con «me interesa» (FR-054)', () => {
+  const marked = view(
+    { id: 'marcada' },
+    makeUserRating({ titleId: 'marcada', watched: false, interested: true }),
+  );
+  const markedAndSeen = view(
+    { id: 'vista' },
+    makeUserRating({ titleId: 'vista', watched: true, interested: true }),
+  );
+  const untouched = view({ id: 'nada' });
+
+  it('lista lo marcado y todavía sin ver', () => {
+    expect(matchesStatus(marked, 'interested')).toBe(true);
+  });
+
+  it('lo ya visto no está en la lista de pendientes, aunque quedara la marca', () => {
+    expect(matchesStatus(markedAndSeen, 'interested')).toBe(false);
+  });
+
+  it('lo que no se ha marcado no aparece', () => {
+    expect(matchesStatus(untouched, 'interested')).toBe(false);
+  });
+
+  it('no altera los demás estados', () => {
+    expect(matchesStatus(marked, 'pending')).toBe(true);
+    expect(matchesStatus(marked, 'watched')).toBe(false);
+    expect(matchesStatus(marked, 'all')).toBe(true);
   });
 });
 

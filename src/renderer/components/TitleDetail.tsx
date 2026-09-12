@@ -23,6 +23,7 @@ interface TitleDetailProps {
   onSaveScores: (scores: Record<string, number>, notes: string) => Promise<void>;
   onClearRating: () => Promise<void>;
   onToggleWatched: (watched: boolean) => Promise<void>;
+  onToggleInterested: (interested: boolean) => Promise<void>;
 }
 
 export function TitleDetail({
@@ -32,6 +33,7 @@ export function TitleDetail({
   onSaveScores,
   onClearRating,
   onToggleWatched,
+  onToggleInterested,
 }: TitleDetailProps) {
   const { title, critic, personal, delta } = view;
   const duration = formatRuntime(title.runtimeMinutes) ?? formatSeasons(title.seasons);
@@ -230,6 +232,7 @@ export function TitleDetail({
             onSave={onSaveScores}
             onClear={onClearRating}
             onToggleWatched={onToggleWatched}
+            onToggleInterested={onToggleInterested}
           />
         </div>
       </aside>

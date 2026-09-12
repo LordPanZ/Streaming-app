@@ -20,16 +20,41 @@ import { normalizeText } from './text';
 export const MAX_PAGE_SIZE = 200;
 export const DEFAULT_PAGE_SIZE = 60;
 
-/** Coincidencia de texto sobre el título en castellano y el original (FR-031). */
+/**
+ * Todo lo que el buscador mira de un título (FR-031, FR-055).
+ *
+ * Se busca sobre lo que el usuario recuerda de una película: cómo se llama,
+ * de qué género es, dónde está, quién sale y de qué año es. La sinopsis queda
+ * fuera a propósito: con ella dentro, buscar «amor» devolvería medio catálogo
+ * y el buscador dejaría de servir para encontrar algo concreto.
+ */
+function searchHaystack(view: TitleView): string {
+  const { title } = view;
+  const parts = [
+    title.title,
+    title.originalTitle,
+    title.mediaType === 'movie' ? 'película pelicula' : 'serie',
+    String(title.year ?? ''),
+    ...title.genres,
+    ...title.platforms.map((platform) => platform.name),
+    ...title.cast,
+    ...title.directors,
+  ];
+  return parts.map((part) => normalizeText(part)).join(' ');
+}
+
+/**
+ * Coincidencia de texto (FR-031, FR-055).
+ *
+ * Todas las palabras deben aparecer, aunque sea en campos distintos: «netflix
+ * terror» encuentra el terror que está en Netflix, y «juego calamar» encuentra
+ * «El juego del calamar» sin exigir la frase literal.
+ */
 export function matchesText(view: TitleView, needle: string): boolean {
   if (!needle) return true;
   const query = normalizeText(needle).trim();
   if (!query) return true;
-  const haystack = `${normalizeText(view.title.title)} ${normalizeText(
-    view.title.originalTitle,
-  )}`;
-  // Todas las palabras deben aparecer: "el juego calamar" encuentra
-  // "El juego del calamar" sin exigir la frase literal.
+  const haystack = searchHaystack(view);
   return query.split(/\s+/).every((word) => haystack.includes(word));
 }
 
@@ -41,6 +66,9 @@ export function matchesStatus(view: TitleView, status: WatchStatusFilter): boole
       return view.rating?.watched !== true;
     case 'rated':
       return view.personal?.score !== null && view.personal?.score !== undefined;
+    case 'interested':
+      // Lo marcado y todavía sin ver: la lista es de pendientes (FR-054).
+      return view.rating?.interested === true && view.rating?.watched !== true;
     case 'all':
     default:
       return true;

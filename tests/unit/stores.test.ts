@@ -252,6 +252,71 @@ describe('RatingsStore (FR-021, FR-025)', () => {
     return ratings;
   }
 
+  describe('«me interesa verla» (FR-054)', () => {
+    it('marca y desmarca sin tocar nada más', async () => {
+      const ratings = await newRatings();
+      const marked = await ratings.setInterested('a', true);
+      expect(marked.interested).toBe(true);
+      expect(marked.watched).toBe(false);
+      expect(marked.scores).toEqual({});
+
+      expect((await ratings.setInterested('a', false)).interested).toBe(false);
+    });
+
+    it('marcar como vista lo saca de la lista de pendientes (invariante 8)', async () => {
+      const ratings = await newRatings();
+      await ratings.setInterested('a', true);
+      expect((await ratings.setWatched('a', true)).interested).toBe(false);
+    });
+
+    it('puntuar también lo saca: puntuar es haber visto', async () => {
+      const ratings = await newRatings();
+      await ratings.setInterested('a', true);
+      const rated = await ratings.setScores('a', { story: 8 });
+      expect(rated.watched).toBe(true);
+      expect(rated.interested).toBe(false);
+    });
+
+    it('desmarcar el visionado no resucita el interés', async () => {
+      // Si vuelve a interesar, se marca otra vez. Resucitarlo solo sería
+      // adivinar por qué el usuario desmarcó.
+      const ratings = await newRatings();
+      await ratings.setInterested('a', true);
+      await ratings.setWatched('a', true);
+      expect((await ratings.setWatched('a', false)).interested).toBe(false);
+    });
+
+    it('una valoración guardada por una versión anterior se lee como «no marcada»', async () => {
+      // El campo llegó en la 1.3.0: sin normalizar quedaría «undefined», que no
+      // es «false» y se comporta distinto al filtrar.
+      const storage = new MemoryStorage();
+      await storage.write(
+        STORAGE_KEYS.ratings,
+        JSON.stringify({
+          schemaVersion: 1,
+          ratings: [
+            {
+              titleId: 'antigua',
+              watched: true,
+              watchedAt: '2026-01-01T00:00:00.000Z',
+              watchedOnPlatform: null,
+              scores: { story: 7 },
+              notes: '',
+              createdAt: '2026-01-01T00:00:00.000Z',
+              updatedAt: '2026-01-01T00:00:00.000Z',
+            },
+          ],
+        }),
+      );
+
+      const ratings = new RatingsStore(storage);
+      await ratings.load();
+      const loaded = ratings.get('antigua');
+      expect(loaded?.interested).toBe(false);
+      expect(loaded?.scores).toEqual({ story: 7 });
+    });
+  });
+
   it('marca como visto guardando la fecha', async () => {
     const ratings = await newRatings();
     const now = new Date('2026-09-08T20:00:00.000Z');
@@ -301,6 +366,7 @@ describe('RatingsStore (FR-021, FR-025)', () => {
 
     const result = await ratings.merge(
       [{ titleId: 'a', watched: true, watchedAt: null, watchedOnPlatform: null,
+         interested: false,
          scores: { story: 1 }, notes: '', createdAt: '', updatedAt: '' }],
       false,
     );
@@ -313,6 +379,7 @@ describe('RatingsStore (FR-021, FR-025)', () => {
     await ratings.setScores('a', { story: 9 });
     await ratings.merge(
       [{ titleId: 'a', watched: true, watchedAt: null, watchedOnPlatform: null,
+         interested: false,
          scores: { story: 1 }, notes: '', createdAt: '', updatedAt: '' }],
       true,
     );
@@ -330,8 +397,10 @@ describe('buildWatchedStats (FR-033)', () => {
       titles,
       [
         { titleId: 'a', watched: true, watchedAt: null, watchedOnPlatform: null,
+          interested: false,
           scores: { story: 10 }, notes: '', createdAt: '', updatedAt: '' },
         { titleId: 'b', watched: true, watchedAt: null, watchedOnPlatform: null,
+          interested: false,
           scores: { story: 6 }, notes: '', createdAt: '', updatedAt: '' },
       ],
       defaultCriteria(),
@@ -349,6 +418,7 @@ describe('buildWatchedStats (FR-033)', () => {
     const stats = buildWatchedStats(
       [makeTitle({ id: 'a' })],
       [{ titleId: 'a', watched: false, watchedAt: null, watchedOnPlatform: null,
+         interested: false,
          scores: {}, notes: '', createdAt: '', updatedAt: '' }],
       defaultCriteria(),
     );

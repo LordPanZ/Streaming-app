@@ -78,9 +78,28 @@ export class RatingsStore {
       // Invariante 6: no visto implica sin fecha de visionado.
       watchedAt: watched ? (options.watchedAt ?? current.watchedAt ?? now.toISOString()) : null,
       watchedOnPlatform: watched ? (options.platform ?? current.watchedOnPlatform ?? null) : null,
+      // Invariante 8: lo visto sale de la lista de pendientes (FR-054). Es una
+      // lista de intenciones, y verla cumple la intención. Desmarcar el
+      // visionado no la resucita: si vuelve a interesar, se marca otra vez.
+      interested: watched ? false : current.interested,
       updatedAt: now.toISOString(),
     };
     return this.persist(next);
+  }
+
+  /**
+   * Marca o desmarca «me interesa verla» (FR-054).
+   *
+   * No toca las puntuaciones ni el visionado: es una lista aparte, de cosas
+   * pendientes, y el usuario puede quitarla sin perder nada de lo demás.
+   */
+  async setInterested(
+    titleId: string,
+    interested: boolean,
+    now: Date = new Date(),
+  ): Promise<UserRating> {
+    const current = this.byTitle.get(titleId) ?? blankRating(titleId, now);
+    return this.persist({ ...current, interested, updatedAt: now.toISOString() });
   }
 
   /**
@@ -104,6 +123,8 @@ export class RatingsStore {
       watched: current.watched || hasAnyScore,
       watchedAt:
         current.watchedAt ?? (hasAnyScore && !current.watched ? now.toISOString() : current.watchedAt),
+      // Puntuar es haber visto, y lo visto sale de pendientes (invariante 8).
+      interested: current.watched || hasAnyScore ? false : current.interested,
       updatedAt: now.toISOString(),
     };
     return this.persist(next);
@@ -166,6 +187,7 @@ export function blankRating(titleId: string, now: Date = new Date()): UserRating
     watched: false,
     watchedAt: null,
     watchedOnPlatform: null,
+    interested: false,
     scores: {},
     notes: '',
     createdAt: stamp,
@@ -224,6 +246,8 @@ export function buildWatchedStats(
   return {
     totalWatched: watched.length,
     totalRated: personalScores.length,
+    // Pendientes de verdad: marcados y todavía sin ver (FR-054).
+    totalInterested: ratings.filter((rating) => rating.interested && !rating.watched).length,
     averagePersonal: mean(personalScores),
     averageCritic: mean(criticScores),
     byGenre: [...byGenre.entries()]
@@ -251,8 +275,19 @@ function reviveRatings(raw: unknown, defaults: RatingsData): RatingsData {
   if (!Array.isArray(candidate.ratings)) return defaults;
   return {
     schemaVersion: RATINGS_SCHEMA_VERSION,
-    ratings: candidate.ratings.filter(isPlausibleRating),
+    ratings: candidate.ratings.filter(isPlausibleRating).map(normalizeRating),
   };
+}
+
+/**
+ * Rellena los campos que un archivo de una versión anterior no traía.
+ *
+ * `interested` llegó en la 1.3.0: las valoraciones guardadas antes no lo tienen
+ * y quedarían como `undefined`, que no es `false` y se comporta distinto al
+ * filtrar. Se normaliza aquí, una vez, en lugar de defenderse en cada uso.
+ */
+export function normalizeRating(rating: UserRating): UserRating {
+  return { ...rating, interested: rating.interested === true };
 }
 
 export function isPlausibleRating(value: unknown): value is UserRating {

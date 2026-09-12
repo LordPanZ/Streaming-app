@@ -97,6 +97,11 @@ export interface UserRating {
   watched: boolean;
   watchedAt: string | null;
   watchedOnPlatform: string | null;
+  /**
+   * «Me interesa verla» (FR-054). Es una intención, no un juicio: marca lo que
+   * el usuario quiere ver, y se apaga sola al marcarlo como visto.
+   */
+  interested: boolean;
   /** Disperso: solo los criterios efectivamente puntuados (FR-024, FR-025). */
   scores: Record<string, number>;
   notes: string;
@@ -267,7 +272,7 @@ export interface Settings {
 
 export type SortField = 'date' | 'critic' | 'personal' | 'title';
 export type SortOrder = 'asc' | 'desc';
-export type WatchStatusFilter = 'all' | 'watched' | 'pending' | 'rated';
+export type WatchStatusFilter = 'all' | 'watched' | 'pending' | 'rated' | 'interested';
 
 export interface CatalogQuery {
   text?: string;
@@ -322,6 +327,8 @@ export interface CatalogFacets {
 export interface WatchedStats {
   totalWatched: number;
   totalRated: number;
+  /** Títulos marcados como «me interesa» y todavía sin ver (FR-054). */
+  totalInterested: number;
   averagePersonal: number | null;
   averageCritic: number | null;
   byGenre: Array<{ genre: string; watched: number; averagePersonal: number | null }>;

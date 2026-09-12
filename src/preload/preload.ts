@@ -20,6 +20,7 @@ import {
   type ImportInput,
   type IpcApi,
   type RunAgentInput,
+  type SetInterestedInput,
   type SetScoresInput,
   type SetSecretsInput,
   type SetWatchedInput,
@@ -47,6 +48,7 @@ const api: IpcApi = {
   },
   ratings: {
     setWatched: (input: SetWatchedInput) => invoke(IPC.ratingsSetWatched, input),
+    setInterested: (input: SetInterestedInput) => invoke(IPC.ratingsSetInterested, input),
     setScores: (input: SetScoresInput) => invoke(IPC.ratingsSetScores, input),
     clear: (titleId: string) => invoke(IPC.ratingsClear, titleId),
     stats: () => invoke(IPC.ratingsStats),

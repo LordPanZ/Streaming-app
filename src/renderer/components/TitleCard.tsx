@@ -15,11 +15,18 @@ interface TitleCardProps {
   view: TitleView;
   onOpen: (id: string) => void;
   onToggleWatched: (id: string, watched: boolean) => void;
+  onToggleInterested: (id: string, interested: boolean) => void;
 }
 
-export function TitleCard({ view, onOpen, onToggleWatched }: TitleCardProps) {
+export function TitleCard({
+  view,
+  onOpen,
+  onToggleWatched,
+  onToggleInterested,
+}: TitleCardProps) {
   const { title, critic, rating, personal } = view;
   const watched = rating?.watched === true;
+  const interested = rating?.interested === true;
 
   return (
     <article className="card">
@@ -52,6 +59,11 @@ export function TitleCard({ view, onOpen, onToggleWatched }: TitleCardProps) {
         {watched && (
           <span className="card__watched" title="Visto">
             ✓
+          </span>
+        )}
+        {!watched && interested && (
+          <span className="card__interested" title="En mi lista de pendientes">
+            ★
           </span>
         )}
       </div>
@@ -93,9 +105,25 @@ export function TitleCard({ view, onOpen, onToggleWatched }: TitleCardProps) {
 
         <div className="card__footer">
           <TrailerButton title={title} compact />
+          {/*
+            El botón de interés desaparece en lo ya visto: una lista de
+            pendientes no admite algo que ya se ha visto (FR-054).
+          */}
+          {!watched && (
+            <button
+              type="button"
+              className={`btn btn--sm${interested ? '' : ' btn--ghost'}`}
+              aria-pressed={interested}
+              onClick={() => onToggleInterested(title.id, !interested)}
+              title={interested ? 'Quitar de mi lista' : 'Añadir a mi lista de pendientes'}
+            >
+              {interested ? '★ Me interesa' : '☆ Me interesa'}
+            </button>
+          )}
           <button
             type="button"
             className={`btn btn--sm${watched ? '' : ' btn--ghost'}`}
+            aria-pressed={watched}
             onClick={() => onToggleWatched(title.id, !watched)}
             title={watched ? 'Marcar como pendiente' : 'Marcar como vista'}
           >

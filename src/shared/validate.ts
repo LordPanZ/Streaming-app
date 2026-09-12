@@ -20,6 +20,7 @@ import type {
 } from './types';
 import type {
   ImportInput,
+  SetInterestedInput,
   SetScoresInput,
   SetSecretsInput,
   SetWatchedInput,
@@ -179,6 +180,13 @@ export function parseSetWatched(input: unknown): SetWatchedInput {
     watchedAt: watchedAt ?? null,
     platform: optionalString(raw.platform, 'La plataforma', 60) ?? null,
   };
+}
+
+export function parseSetInterested(input: unknown): SetInterestedInput {
+  const raw = asObject(input, 'La orden');
+  const interested = optionalBoolean(raw.interested, 'El interés');
+  if (interested === undefined) fail('Falta indicar si interesa.');
+  return { titleId: parseTitleId(raw.titleId), interested };
 }
 
 /**

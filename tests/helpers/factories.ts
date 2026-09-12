@@ -59,6 +59,7 @@ export function makeUserRating(overrides: Partial<UserRating> = {}): UserRating 
     watched: true,
     watchedAt: '2026-09-08T20:00:00.000Z',
     watchedOnPlatform: null,
+    interested: false,
     scores: {},
     notes: '',
     createdAt: '2026-09-08T20:00:00.000Z',

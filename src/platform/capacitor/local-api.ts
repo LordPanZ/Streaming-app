@@ -82,6 +82,7 @@ export function createLocalApi(options: LocalApiOptions): IpcApi {
     },
     ratings: {
       setWatched: (input) => wrap(() => service.ratingsSetWatched(input)),
+      setInterested: (input) => wrap(() => service.ratingsSetInterested(input)),
       setScores: (input) => wrap(() => service.ratingsSetScores(input)),
       clear: (titleId) => wrap(() => service.ratingsClear(titleId)),
       stats: () => wrap(() => service.ratingsStats()),

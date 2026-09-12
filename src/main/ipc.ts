@@ -70,6 +70,7 @@ export function registerIpcHandlers(ctx: IpcContext): void {
   handle(IPC.catalogFacets, () => service.catalogFacets());
 
   handle(IPC.ratingsSetWatched, (payload) => service.ratingsSetWatched(payload));
+  handle(IPC.ratingsSetInterested, (payload) => service.ratingsSetInterested(payload));
   handle(IPC.ratingsSetScores, (payload) => service.ratingsSetScores(payload));
   handle(IPC.ratingsClear, (payload) => service.ratingsClear(payload));
   handle(IPC.ratingsStats, () => service.ratingsStats());

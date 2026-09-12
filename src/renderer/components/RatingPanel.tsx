@@ -20,6 +20,7 @@ interface RatingPanelProps {
   onSave: (scores: Record<string, number>, notes: string) => Promise<void>;
   onClear: () => Promise<void>;
   onToggleWatched: (watched: boolean) => Promise<void>;
+  onToggleInterested: (interested: boolean) => Promise<void>;
 }
 
 export function RatingPanel({
@@ -28,6 +29,7 @@ export function RatingPanel({
   onSave,
   onClear,
   onToggleWatched,
+  onToggleInterested,
 }: RatingPanelProps) {
   const [scores, setScores] = useState<Record<string, number>>(view.rating?.scores ?? {});
   const [notes, setNotes] = useState(view.rating?.notes ?? '');
@@ -56,6 +58,7 @@ export function RatingPanel({
           watched: true,
           watchedAt: null,
           watchedOnPlatform: null,
+          interested: false,
           scores,
           notes,
           createdAt: '',
@@ -96,6 +99,7 @@ export function RatingPanel({
   }
 
   const watched = view.rating?.watched === true;
+  const interested = view.rating?.interested === true;
 
   return (
     <div className="section">
@@ -105,10 +109,24 @@ export function RatingPanel({
         <button
           type="button"
           className={watched ? 'btn btn--primary' : 'btn'}
+          aria-pressed={watched}
           onClick={() => void onToggleWatched(!watched)}
         >
           {watched ? '✓ La he visto' : 'Marcar como vista'}
         </button>
+
+        {/* Verla cumple la intención, así que el botón se retira (FR-054). */}
+        {!watched && (
+          <button
+            type="button"
+            className={interested ? 'btn' : 'btn btn--ghost'}
+            aria-pressed={interested}
+            onClick={() => void onToggleInterested(!interested)}
+            title={interested ? 'Quitar de mi lista' : 'Añadir a mi lista de pendientes'}
+          >
+            {interested ? '★ Me interesa' : '☆ Me interesa'}
+          </button>
+        )}
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="field__hint">Nota personal</span>

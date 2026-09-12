@@ -100,6 +100,7 @@ export function FilterBar({ query, facets, total, onChange, onReset }: FilterBar
         aria-label="Estado"
       >
         <option value="all">Vistas y pendientes</option>
+        <option value="interested">★ Solo las que me interesan</option>
         <option value="pending">Solo pendientes</option>
         <option value="watched">Solo vistas</option>
         <option value="rated">Solo valoradas</option>

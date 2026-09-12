@@ -142,6 +142,15 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T154** Aviso de cuántos títulos esconde el listón, con atajo para verlos *(FR-053)* → `renderer/views/Browse.tsx`
 - [x] **T155** Decisión explícita sobre los títulos que nadie ha puntuado todavía *(FR-053, Art. IV.2)*
 
+## Fase 15 — Lista de pendientes y buscador que busca (v1.3.0)
+
+- [x] **T160** Campo `interested` en la valoración, con migración de lo ya guardado *(FR-054)* → `core/store/ratings.ts`
+- [x] **T161** Invariante 8: marcar como vista (o puntuar) saca de pendientes *(FR-054)*
+- [x] **T162** Botón «me interesa» en la tarjeta y en la ficha, y distintivo ★ en el póster *(FR-054)*
+- [x] **T163** Filtro «solo las que me interesan» y atajo desde «Mis vistas» *(FR-054)*
+- [x] **T164** El buscador mira género, plataforma, reparto, dirección, año y tipo *(FR-055)* → `searchHaystack`
+- [x] **T165** Varias palabras cruzando campos: «netflix terror» *(FR-055)*
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

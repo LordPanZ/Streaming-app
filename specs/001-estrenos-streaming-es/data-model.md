@@ -96,6 +96,7 @@ Valoración personal. Clave primaria `titleId`.
 | `watched` | `boolean` | no | Marcado como visto | FR-021 |
 | `watchedAt` | `string` | sí | Fecha de visionado (ISO 8601) | FR-021 |
 | `watchedOnPlatform` | `string` | sí | Identificador de plataforma | FR-021 |
+| `interested` | `boolean` | no | «Me interesa verla»: lista de pendientes | FR-054 |
 | `scores` | `Record<string, number>` | no | Puntuación 0–10 por identificador de criterio | FR-022, FR-024 |
 | `notes` | `string` | no | Comentario libre | FR-025 |
 | `createdAt` | `string` | no | ISO 8601 | — |
@@ -103,6 +104,10 @@ Valoración personal. Clave primaria `titleId`.
 
 `scores` es disperso: solo contiene los criterios efectivamente puntuados
 (FR-024, FR-025). La nota personal **no se almacena**, se deriva (ADR-008).
+
+`interested` es una **intención**, no un juicio: dice qué quiere ver el usuario,
+no qué le ha parecido. Por eso convive con `scores` sin mezclarse y se apaga al
+marcar el título como visto (invariante 8).
 
 ---
 
@@ -202,3 +207,5 @@ del catálogo.
 5. `RatingCriterion.weight > 0` (FR-023).
 6. `UserRating.watched === false` implica `watchedAt === null`.
 7. Ninguna entidad persistida contiene claves de API (NFR-009).
+8. `UserRating.watched === true` implica `interested === false`: lo visto sale
+   de la lista de pendientes (FR-054).

@@ -378,6 +378,38 @@ semanal la rellena sin volver a buscarlo.
   campo, cuando se cargan, entonces se adopta el valor por defecto y la
   aplicación arranca con normalidad.
 
+**FR-054 — «Me interesa verla».**
+El usuario puede marcar un título como pendiente de ver, desde la tarjeta y
+desde la ficha, y filtrar el catálogo por los marcados. Es una intención, no un
+juicio: convive con la valoración sin mezclarse con ella.
+
+- *Criterio:* Dado un título sin marcar, cuando el usuario pulsa el botón,
+  entonces queda marcado y aparece con el filtro «solo las que me interesan».
+- *Criterio:* Dado un título marcado, cuando el usuario lo marca como visto,
+  entonces sale de la lista de pendientes: verlo cumple la intención.
+- *Criterio:* Dado un título que se desmarca como visto, cuando se consulta la
+  lista, entonces **no** vuelve a aparecer: si sigue interesando, se marca otra
+  vez. Resucitarlo sería adivinar.
+- *Criterio:* Dado un título ya visto, cuando se mira su tarjeta, entonces el
+  botón de interés no está: una lista de pendientes no admite algo ya visto.
+- *Criterio:* Dadas valoraciones guardadas por una versión anterior, sin este
+  campo, cuando se cargan, entonces se leen como «no marcada».
+
+**FR-055 — Búsqueda por más de un término y por más de un campo.**
+El buscador mira el título en castellano y el original, el género, la
+plataforma, el reparto, la dirección, el año y el tipo. Todas las palabras
+escritas deben aparecer, aunque sea en campos distintos.
+
+La sinopsis queda fuera a propósito: con ella dentro, buscar una palabra común
+devolvería medio catálogo y el buscador dejaría de servir para encontrar algo
+concreto.
+
+- *Criterio:* Dado «netflix terror», cuando se busca, entonces salen los
+  títulos de terror disponibles en Netflix, y no los de terror de otra
+  plataforma ni las comedias de Netflix.
+- *Criterio:* Dado el nombre de un actor con tilde escrito sin ella, cuando se
+  busca, entonces el título aparece igualmente.
+
 ### 5.9 Android
 
 **FR-043 — Aplicación para Android.**
