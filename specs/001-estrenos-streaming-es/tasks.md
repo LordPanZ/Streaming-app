@@ -122,6 +122,17 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T131** Aviso mientras se escribe, en primer arranque y en ajustes *(FR-052)*
 - [x] **T132** El 401 de TMDB explica la confusión en lugar de decir «no autorizado» *(FR-036, FR-052)*
 
+## Fase 13 — Que la primera recopilación no se haga eterna (v1.2.0)
+
+- [x] **T140** Ayudante de paralelismo acotado con orden de entrada garantizado *(NFR-014)* → `core/agent/concurrency.ts`
+- [x] **T141** Bolsa de incidencias por trabajo para que el informe siga siendo reproducible *(NFR-014, Art. VII)* → `IssueBag` en `core/agent/report.ts`
+- [x] **T142** Etapas `enrich`, `rate` y `trailer` de cuatro en cuatro *(ADR-016, NFR-005)*
+- [x] **T143** Revalidación de tráileres: comprobación en paralelo, escrituras en orden *(FR-019)*
+- [x] **T144** Prueba de tubería completa con latencias invertidas contra el recorrido secuencial *(NFR-014)* → `unit/pipeline-concurrency.test.ts`
+- [x] **T145** La pantalla del agente avisa de lo que dura la primera recopilación y de no salirse de la aplicación en el móvil *(ADR-015)*
+- [x] **T146** Etapas del agente nombradas en castellano en la barra de progreso y en el historial → `renderer/format.ts`
+- [x] **T147** La versión de Android deja de derivar a mano: se sincroniza desde `package.json` *(FR-043)* → `scripts/sync-android-version.mjs`
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

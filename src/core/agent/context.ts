@@ -39,6 +39,12 @@ export interface AgentDeps {
   onProgress?: (progress: AgentProgress) => void;
   /** Tope de revalidaciones de tráiler por ejecución (FR-019). */
   maxRevalidations?: number;
+  /**
+   * Títulos que cada etapa procesa a la vez (ADR-016). Por defecto
+   * `DEFAULT_STAGE_CONCURRENCY`. Un `1` reproduce el recorrido secuencial, que
+   * es lo que usan las pruebas que comprueban el orden exacto de las llamadas.
+   */
+  concurrency?: number;
 }
 
 export interface PipelineContext {

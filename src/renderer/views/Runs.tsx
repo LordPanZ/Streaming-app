@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { AgentRun } from '../../shared/types';
-import { formatDateTime, formatDuration } from '../format';
+import { formatDateTime, formatDuration, STAGE_SHORT } from '../format';
 import { EmptyState } from '../components/EmptyState';
 
 const TRIGGER_LABEL: Record<AgentRun['trigger'], string> = {
@@ -97,7 +97,7 @@ export function Runs({ runs }: { runs: AgentRun[] }) {
                       {run.stages
                         .map(
                           (stage) =>
-                            `${stage.stage} (${stage.processed}✓${stage.failed > 0 ? ` ${stage.failed}✗` : ''})`,
+                            `${STAGE_SHORT[stage.stage]} (${stage.processed}✓${stage.failed > 0 ? ` ${stage.failed}✗` : ''})`,
                         )
                         .join(' · ')}
                     </span>
@@ -108,7 +108,7 @@ export function Runs({ runs }: { runs: AgentRun[] }) {
                   <ul className="issue-list">
                     {run.issues.slice(0, 25).map((issue, index) => (
                       <li key={`${run.id}-${index}`}>
-                        <strong>{issue.stage}</strong> · {issue.source}
+                        <strong>{STAGE_SHORT[issue.stage]}</strong> · {issue.source}
                         {issue.titleName ? ` · ${issue.titleName}` : ''}: {issue.message}
                       </li>
                     ))}

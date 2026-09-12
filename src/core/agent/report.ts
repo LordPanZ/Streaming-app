@@ -46,6 +46,27 @@ export function statusFor(issues: readonly RunIssue[], persisted: number): RunSt
   return 'partial';
 }
 
+/**
+ * Bolsa de incidencias de un solo elemento.
+ *
+ * Cuando una etapa procesa varios títulos a la vez (ADR-016), el orden en que
+ * terminan lo decide la red. Cada trabajo escribe en su propia bolsa y la etapa
+ * las vuelca al final siguiendo el orden de entrada, para que dos ejecuciones
+ * con los mismos datos produzcan el mismo informe (Art. VII).
+ */
+export class IssueBag {
+  readonly entries: Array<{
+    source: string;
+    message: string;
+    severity: RunIssue['severity'];
+    extra: Partial<RunIssue>;
+  }> = [];
+
+  warn(source: string, message: string, extra: Partial<RunIssue> = {}): void {
+    this.entries.push({ source, message, severity: 'warn', extra });
+  }
+}
+
 /** Acumulador de una ejecución. Lo comparten todas las etapas. */
 export class RunRecorder {
   readonly issues: RunIssue[] = [];
@@ -71,6 +92,24 @@ export class RunRecorder {
 
   error(stage: StageName, source: string, message: string, extra: Partial<RunIssue> = {}): void {
     this.issue({ stage, source, message, severity: 'error', ...extra });
+  }
+
+  /**
+   * Vuelca bolsas de incidencias en el orden de entrada, no en el de llegada.
+   * Es lo que mantiene el informe reproducible cuando la etapa va en paralelo.
+   */
+  drain(stage: StageName, bags: readonly IssueBag[]): void {
+    for (const bag of bags) {
+      for (const entry of bag.entries) {
+        this.issue({
+          stage,
+          source: entry.source,
+          message: entry.message,
+          severity: entry.severity,
+          ...entry.extra,
+        });
+      }
+    }
   }
 
   /** Cronometra una etapa y registra su informe pase lo que pase. */

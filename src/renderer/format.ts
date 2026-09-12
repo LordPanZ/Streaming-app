@@ -1,6 +1,6 @@
 /** Formato de fechas, duraciones y notas para la interfaz. En castellano. */
 
-import type { Confidence, MediaType } from '../shared/types';
+import type { Confidence, MediaType, StageName } from '../shared/types';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('es-ES', {
   day: 'numeric',
@@ -52,6 +52,30 @@ export function formatDelta(delta: number | null): string {
   const sign = delta > 0 ? '+' : '';
   return `${sign}${delta.toFixed(1).replace('.', ',')}`;
 }
+
+/**
+ * Nombre de cada etapa del agente en castellano.
+ *
+ * El identificador interno es inglés porque así se escribe el código, pero el
+ * usuario mira esta barra durante toda la recopilación: merece leer lo que
+ * está pasando, no el nombre de una función.
+ */
+export const STAGE_LABEL: Record<StageName, string> = {
+  discover: 'Buscando estrenos',
+  enrich: 'Leyendo fichas',
+  rate: 'Pidiendo notas',
+  trailer: 'Comprobando tráileres',
+  persist: 'Guardando',
+};
+
+/** Versión corta, para el detalle de una ejecución. */
+export const STAGE_SHORT: Record<StageName, string> = {
+  discover: 'estrenos',
+  enrich: 'fichas',
+  rate: 'notas',
+  trailer: 'tráileres',
+  persist: 'guardado',
+};
 
 export const CONFIDENCE_LABEL: Record<Confidence, string> = {
   none: 'sin fuentes',

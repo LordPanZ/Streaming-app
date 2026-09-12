@@ -3,12 +3,16 @@
  *
  * Sin clave de OMDb la ejecución continúa: se conserva la nota de TMDB y las
  * demás quedan ausentes. Degradar es preferible a abortar (Art. IV.1).
+ *
+ * Las consultas van en paralelo acotado (ADR-016); las incidencias se vuelcan
+ * después en el orden del catálogo, no en el de respuesta.
  */
 
-import type { CriticRatings } from '../../../shared/types';
+import type { CriticRatings, Title } from '../../../shared/types';
 import { hasRatings } from '../../providers/omdb';
+import { DEFAULT_STAGE_CONCURRENCY, mapWithConcurrency, progressCounter } from '../concurrency';
 import type { AgentDeps, PipelineContext } from '../context';
-import { describeError } from '../report';
+import { describeError, IssueBag } from '../report';
 
 export async function stageRate(ctx: PipelineContext, deps: AgentDeps): Promise<void> {
   await ctx.recorder.stage('rate', async (counters) => {
@@ -23,43 +27,53 @@ export async function stageRate(ctx: PipelineContext, deps: AgentDeps): Promise<
       return;
     }
 
-    const pending = ctx.titles.filter((title) => title.imdbId !== null);
-    let done = 0;
+    // Un estreno muy reciente suele no tener ficha en IMDb todavía: eso no es
+    // una incidencia, es un título que no hay dónde consultar.
+    const pending = ctx.titles.filter((title): title is Title => title.imdbId !== null);
+    const tick = progressCounter();
 
-    for (const title of ctx.titles) {
-      if (!title.imdbId) {
-        // Habitual en estrenos muy recientes: no es una incidencia, es que
-        // todavía no existe la ficha en IMDb.
-        continue;
-      }
+    const outcomes = await mapWithConcurrency(
+      pending,
+      deps.concurrency ?? DEFAULT_STAGE_CONCURRENCY,
+      async (title) => {
+        const bag = new IssueBag();
+        const imdbId = title.imdbId as string;
+        let failed = false;
 
-      done += 1;
-      deps.onProgress?.({
-        runId: ctx.runId,
-        stage: 'rate',
-        done,
-        total: pending.length,
-        message: title.title,
-      });
-
-      try {
-        const fetched = await omdb.ratingsFor(title.imdbId, deps.now());
-        title.ratings = mergeRatings(title.ratings, fetched);
-        if (!hasRatings(fetched)) {
-          ctx.recorder.warn('rate', 'omdb', 'OMDb no tiene notas para este título.', {
-            titleId: title.id,
-            titleName: title.title,
+        try {
+          const fetched = await omdb.ratingsFor(imdbId, deps.now());
+          title.ratings = mergeRatings(title.ratings, fetched);
+          if (!hasRatings(fetched)) {
+            bag.warn('omdb', 'OMDb no tiene notas para este título.', {
+              titleId: title.id,
+              titleName: title.title,
+            });
+          }
+        } catch (error) {
+          failed = true;
+          bag.warn('omdb', describeError(error), { titleId: title.id, titleName: title.title });
+        } finally {
+          deps.onProgress?.({
+            runId: ctx.runId,
+            stage: 'rate',
+            done: tick(),
+            total: pending.length,
+            message: title.title,
           });
         }
-        counters.processed += 1;
-      } catch (error) {
-        counters.failed += 1;
-        ctx.recorder.warn('rate', 'omdb', describeError(error), {
-          titleId: title.id,
-          titleName: title.title,
-        });
-      }
+
+        return { bag, failed };
+      },
+    );
+
+    for (const outcome of outcomes) {
+      if (outcome.failed) counters.failed += 1;
+      else counters.processed += 1;
     }
+    ctx.recorder.drain(
+      'rate',
+      outcomes.map((outcome) => outcome.bag),
+    );
   });
 }
 

@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CatalogQuery, TitleView } from '../shared/types';
 import { api, describeApiError, unwrap } from './api';
-import { formatDateTime } from './format';
+import { formatDateTime, STAGE_LABEL } from './format';
 import { useAgent } from './hooks/useAgent';
 import { useCatalog } from './hooks/useCatalog';
 import { useSettings } from './hooks/useSettings';
@@ -216,7 +216,8 @@ export function App() {
               <>
                 <span className="spinner" aria-hidden="true" />
                 <span>
-                  {agent.progress.stage} · {agent.progress.done}/{agent.progress.total}
+                  {STAGE_LABEL[agent.progress.stage]} · {agent.progress.done}/
+                  {agent.progress.total}
                 </span>
                 <span className="progress">
                   <span
@@ -254,6 +255,14 @@ export function App() {
         <main className="content">
           {actionError && <Banner tone="error">{actionError}</Banner>}
           {agent.error && <Banner tone="error">{agent.error}</Banner>}
+          {agent.running && agent.runs.length === 0 && (
+            <Banner tone="info">
+              La primera recopilación es la más larga: consulta todas las plataformas activas y
+              pide una ficha por título, así que puede tardar unos minutos. Déjala terminar sin
+              cerrar la aplicación; en el móvil, además, sin salirte a otra aplicación. Las
+              siguientes son mucho más cortas, porque solo miran lo nuevo.
+            </Banner>
+          )}
           {agent.lastSummary && !agent.running && (
             <Banner tone={agent.lastSummary.status === 'failed' ? 'error' : 'info'}>
               Recopilación {agent.lastSummary.status === 'success' ? 'correcta' : agent.lastSummary.status === 'partial' ? 'con incidencias' : 'fallida'}:{' '}

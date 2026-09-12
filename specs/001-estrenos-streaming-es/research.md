@@ -332,3 +332,60 @@ excepción.
 **Consecuencia.** Si el usuario no abre la aplicación en tres semanas, al
 abrirla obtiene una sola recopilación con la ventana configurada, no tres. Se
 documenta en la interfaz para que no sorprenda.
+
+---
+
+## ADR-016 — Las etapas por título van en paralelo acotado
+
+**Contexto.** Tres de las cinco etapas hacen una petición por título:
+enriquecimiento de ficha, notas de crítica y comprobación de tráileres. Estaban
+escritas con un `for … await` dentro, o sea de una en una. Una primera
+recopilación real ronda el millar de peticiones entre las cuatro plataformas,
+así que a ~300 ms cada una salían unos cinco minutos de espera.
+
+El detalle que lo convierte en problema, y no en una simple molestia, es
+Android: por ADR-015 la recopilación corre en primer plano, mientras el usuario
+mira la pantalla. Cinco minutos de primer plano es pedirle demasiado al usuario
+y al sistema, que estrangula la vista web en cuanto la aplicación pasa atrás.
+
+Mientras tanto, el `HttpClient` traía desde el principio un limitador de cuatro
+peticiones simultáneas (NFR-003) que **nunca llegó a usarse**: sin nadie que
+pidiera dos cosas a la vez, el semáforo estaba siempre abierto.
+
+**Decisión.** Las tres etapas recorren sus títulos con `mapWithConcurrency`, un
+ayudante del núcleo que mantiene como mucho N trabajos en vuelo. N por defecto
+es 4, el mismo número que el limitador del cliente HTTP: pedir más solo llenaría
+su cola sin acelerar nada, y apretar a un tercero gratuito no es de recibo
+(Art. V).
+
+**Alternativas descartadas.**
+
+- *`Promise.all` a pelo.* Lanzaría las ~300 peticiones de golpe. El limitador
+  del cliente las encolaría, sí, pero con 300 promesas vivas y 300 tiempos de
+  espera corriendo a la vez; en un móvil eso es pedir problemas.
+- *Subir el límite del cliente HTTP.* No hacía falta: el cuello de botella no
+  era el límite, era que nadie lo alcanzaba.
+
+**Lo que no puede cambiar.** Ir en paralelo no puede alterar el resultado
+(Art. VII). Dos invariantes lo garantizan y las dos están probadas:
+
+1. **Orden de entrada.** `mapWithConcurrency` devuelve los resultados alineados
+   con la entrada, no con la llegada. El catálogo y el orden de `ctx.titles`
+   quedan igual que cuando se recorría de uno en uno.
+2. **Informe reproducible.** Cada trabajo escribe sus incidencias en su propia
+   bolsa (`IssueBag`) y la etapa las vuelca al final en el orden de entrada. El
+   informe se lee igual aunque las respuestas lleguen al revés.
+
+A eso se añade una tercera regla, de honradez más que de orden: si un trabajo
+falla, los que ya estaban en vuelo **terminan** antes de propagar el error.
+Abandonar peticiones a medias es justo lo que deja un informe diciendo que hizo
+cosas que no llegó a hacer.
+
+**Escrituras.** La revalidación de tráileres (FR-019) comprueba en paralelo pero
+escribe en el catálogo después y en orden. La red admite desorden; el almacén no
+tiene por qué sufrirlo.
+
+**Consecuencia medible.** La primera recopilación pasa de recorrer las
+peticiones de una en una a hacerlo de cuatro en cuatro. El número de peticiones
+no cambia —se comprueba en las pruebas—, solo el tiempo que se tarda en
+gastarlas.

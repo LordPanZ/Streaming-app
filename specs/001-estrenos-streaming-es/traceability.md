@@ -77,7 +77,7 @@ automático nada que no lo esté.
 | NFR-002 Pruebas sin red ni claves | `tests/helpers/fake-fetch.ts`, `tests/fixtures/` | Toda la batería. Confirmado en clon limpio por `checks.yml` en las máquinas de GitHub, y en los tres sistemas dentro de `release.yml` | Automática |
 | NFR-003 Límite de tasa y espera exponencial | `core/providers/http.ts` | `contract/http.test.ts` → «la espera crece exponencialmente», «respeta Retry-After» | Automática |
 | NFR-004 Caché con expiración | `core/providers/cache.ts` | `contract/http.test.ts` → bloque «caché» (5 casos) | Automática |
-| NFR-005 Ejecución en menos de 10 min | Concurrencia 4, `append_to_response`, caché | Medición registrada en cada informe (`durationMs`) | Observada en ejecución |
+| NFR-005 Ejecución en menos de 10 min | Paralelismo de 4 por etapa (ADR-016), `append_to_response`, caché | Medición registrada en cada informe (`durationMs`) | Observada en ejecución |
 | NFR-006 Interfaz fluida con 1 000 títulos | Índices en memoria de `core/store/catalog.ts` | `unit/stores.test.ts` → «estrecha por semana, plataforma y género usando los índices» | Automática (mecanismo) |
 | NFR-007 Ventana aislada | `main/main.ts` (`webPreferences`) | Revisión de código; lista manual §3, punto 8 | Manual |
 | NFR-008 Validación de entrada IPC | `shared/validate.ts` | `unit/validate.test.ts` (35 casos) | Automática |
@@ -86,6 +86,7 @@ automático nada que no lo esté.
 | NFR-011 Núcleo sin APIs de Node | `core/store/storage.ts`, `src/platform/` | `unit/architecture.test.ts` → «ningún archivo de src/core importa un módulo de Node» | Automática |
 | NFR-012 Sin desbordamiento desde 360 px | `renderer/styles/global.css` | Medición de `scrollWidth` frente a `clientWidth` a 412 px y 360 px | Automática (medida) |
 | NFR-013 La interfaz se monta y sobrevive sin precargador | `renderer/main.tsx`, `renderer/api.ts` | `npm run smoke`: carga el paquete compilado por HTTP sin precargador y comprueba que la aplicación sigue en pie tras los efectos | Automática |
+| NFR-014 Paralelismo acotado sin cambiar el resultado | `core/agent/concurrency.ts`, etapas `enrich`/`rate`/`trailer`, `IssueBag` de `core/agent/report.ts` | `unit/concurrency.test.ts` (13 casos) y `unit/pipeline-concurrency.test.ts` → «informa de las incidencias en el orden del catálogo, no en el de respuesta» y «solapa peticiones de verdad, y sin pasarse del límite del cliente HTTP» | Automática |
 
 ## 3. Lista de verificación manual
 
@@ -135,6 +136,22 @@ De ahí salen `unit/renderer-api.test.ts` y la prueba de humo, y NFR-013.
 
 Lección aplicada a la matriz: «construido» no es una cobertura, es un estado de
 compilación. Las filas de FR-041 y FR-043 lo dicen así ahora.
+
+El segundo caso apareció al preparar la primera recopilación de verdad. NFR-003
+(«límite de concurrencia») figuraba como **automática**, y lo estaba: el cliente
+HTTP tenía su semáforo de cuatro y una prueba que lo verificaba. Lo que nadie
+comprobó es que ese límite **llegara a alcanzarse**. Las tres etapas que piden
+una ficha por título iban de una en una, así que el semáforo estaba siempre
+abierto: la prueba medía un mecanismo que en producción no se usaba.
+
+La fila decía la verdad sobre el componente y mentía sobre el sistema. De ahí
+sale NFR-014, que no mide el limitador sino la tubería entera, y cuya prueba
+afirma justo lo que faltaba: que en una ejecución completa las peticiones se
+solapan de verdad.
+
+Lección aplicada a la matriz: probar que un mecanismo funciona no prueba que
+alguien lo use. Cuando una fila cubre un límite, un caché o un reintento,
+conviene que haya otra que lo ejercite de punta a punta.
 
 ## 4. Requisitos sin cobertura automática
 
