@@ -239,6 +239,22 @@ describe('matchesStatus con «me interesa» (FR-054)', () => {
     expect(matchesStatus(marked, 'watched')).toBe(false);
     expect(matchesStatus(marked, 'all')).toBe(true);
   });
+
+  it('el listón de calidad no puede esconder lo que se apuntó a mano (FR-057)', () => {
+    // La sección «Me interesa» consulta con `minCritic: 0` justo por esto: si
+    // el usuario marcó una película floja, la marcó a sabiendas y la quiere
+    // ver en su lista.
+    const floja = view(
+      { id: 'floja', ratings: makeRatings({ imdb: 3 }) },
+      makeUserRating({ titleId: 'floja', watched: false, interested: true }),
+    );
+
+    const conListón = applyQualityFloor(
+      { status: 'interested', minCritic: 0 },
+      { minCritic: 8, includeUnrated: false },
+    );
+    expect(filterViews([floja], conListón).map((v) => v.title.id)).toEqual(['floja']);
+  });
 });
 
 describe('filterViews (FR-029)', () => {

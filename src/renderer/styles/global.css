@@ -583,6 +583,23 @@ a {
   border: 1px solid var(--border);
 }
 
+/*
+ * Cuando la etiqueta es enlace (FR-056) se comporta como tal: el cursor y el
+ * realce al pasar por encima la distinguen de la decorativa, sin cambiarle la
+ * forma, que es lo que la hace reconocible.
+ */
+.platform-badge--link {
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.platform-badge--link:hover,
+.platform-badge--link:focus-visible {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
 .platform-badge__dot {
   width: 7px;
   height: 7px;

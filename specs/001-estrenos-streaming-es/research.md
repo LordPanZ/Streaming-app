@@ -437,3 +437,49 @@ T093, y es requisito si algún día esto va a una tienda.
 instalada lleva una de las firmas viejas, así que la primera actualización
 todavía obliga a desinstalar. A partir de ahí, todas las siguientes se instalan
 encima.
+
+---
+
+## ADR-018 — Enlace a la plataforma: búsqueda, no ficha, y dicho así
+
+**Contexto.** Se pide un enlace que lleve de un título a ese título dentro de su
+plataforma. Al ir a implementarlo aparecen dos límites duros.
+
+El primero es de la fuente. TMDB devuelve en `watch/providers` **un solo**
+`link` por región: una página suya que lista dónde ver el título. No hay en la
+respuesta nada parecido a «la dirección de esta película en Netflix». Peor: la
+implementación anterior copiaba ese mismo enlace en cada plataforma y la interfaz
+pintaba un botón «Ver en Netflix», otro «Ver en Prime Video», y los dos llevaban
+a la misma página de TMDB. El botón mentía sobre su destino.
+
+El segundo es de las plataformas. Ninguna publica un esquema de direcciones que
+se pueda derivar de un identificador de TMDB. Construir una ruta a la ficha
+sería inventarla.
+
+**Decisión.** Tres niveles, cada uno con el texto que le corresponde:
+
+1. **Buscador de la plataforma**, donde se conoce una ruta estable: se abre con
+   el título ya escrito y el botón dice «🔎 Buscar en Netflix». Es un clic más,
+   pero acaba en el sitio correcto.
+2. **Portada de la plataforma**, donde no se conoce: «Abrir HBO Max». Una
+   portada no lleva el título dentro, porque fingir una búsqueda que no existe
+   es peor que no ofrecerla.
+3. **Página de TMDB**, una vez y con su nombre: «Ver opciones en TMDB». Es
+   información real de la fuente, y ahí sí hay enlaces de verdad a cada
+   plataforma.
+
+Es el mismo criterio que ya se aplicaba al tráiler: cuando no hay enlace
+verificado, se ofrece la búsqueda y se llama búsqueda (FR-018, Art. IV.3).
+
+**Lo que no se ha podido comprobar, y consta.** Los prefijos de búsqueda no se
+han probado contra los servidores de cada plataforma. El inventario de destinos
+de red está cerrado a cuatro anfitriones (ADR-010) y ninguna de estas lo es, así
+que desde el entorno de desarrollo no se puede abrir ninguna. Van escritos con
+la certeza de cada caso y donde no la hay se cae a la portada. Si una ruta
+cambia, el arreglo es una línea en `core/domain/platform-links.ts`, y las
+pruebas garantizan que ninguna plataforma del catálogo se quede sin enlace.
+
+**Por qué vive aparte de `platforms.ts`.** Aquello son datos del dominio
+—identificador, alias, color— que cambian poco. Esto son direcciones de terceros
+que cambian sin avisar. Separarlas deja claro qué parte es estable y qué parte
+hay que revisar cuando algo deje de funcionar.

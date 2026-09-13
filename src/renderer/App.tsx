@@ -10,6 +10,7 @@ import { formatDateTime, STAGE_LABEL } from './format';
 import { useAgent } from './hooks/useAgent';
 import { useCatalog } from './hooks/useCatalog';
 import { useSettings } from './hooks/useSettings';
+import { useStats } from './hooks/useStats';
 import { Banner } from './components/EmptyState';
 import { TitleDetail } from './components/TitleDetail';
 import { Browse } from './views/Browse';
@@ -18,14 +19,31 @@ import { Runs } from './views/Runs';
 import { SettingsView } from './views/SettingsView';
 import { Watched } from './views/Watched';
 
-type ViewName = 'week' | 'catalog' | 'watched' | 'runs' | 'settings';
+type ViewName = 'week' | 'catalog' | 'interested' | 'watched' | 'runs' | 'settings';
 
 const WEEK_QUERY: CatalogQuery = { week: 'current', sort: 'date', order: 'desc', limit: 60 };
 const CATALOG_QUERY: CatalogQuery = { week: 'all', sort: 'date', order: 'desc', limit: 60 };
 
+/**
+ * Consulta de la sección «Me interesa» (FR-057).
+ *
+ * `minCritic: 0` no es un descuido: el listón de calidad (FR-053) no puede
+ * esconder algo que el usuario ha apuntado a mano. Si lo marcó, lo quiere ver,
+ * tenga la nota que tenga.
+ */
+const INTERESTED_QUERY: CatalogQuery = {
+  week: 'all',
+  status: 'interested',
+  minCritic: 0,
+  sort: 'date',
+  order: 'desc',
+  limit: 60,
+};
+
 const NAV: Array<{ id: ViewName; label: string; icon: string }> = [
   { id: 'week', label: 'Esta semana', icon: '📅' },
   { id: 'catalog', label: 'Catálogo', icon: '🎞️' },
+  { id: 'interested', label: 'Me interesa', icon: '★' },
   { id: 'watched', label: 'Mis vistas', icon: '✓' },
   { id: 'runs', label: 'Ejecuciones', icon: '📋' },
   { id: 'settings', label: 'Ajustes', icon: '⚙️' },
@@ -42,6 +60,7 @@ export function App() {
   const catalog = useCatalog(WEEK_QUERY);
   const settings = useSettings();
   const agent = useAgent();
+  const { stats } = useStats();
 
   const hasKeys = agent.status?.hasKeys ?? false;
 
@@ -72,8 +91,21 @@ export function App() {
   const goTo = useCallback(
     (next: ViewName) => {
       setView(next);
-      if (next === 'week') catalog.patchQuery({ week: WEEK_QUERY.week });
-      if (next === 'catalog') catalog.patchQuery({ week: CATALOG_QUERY.week });
+
+      if (next === 'interested') {
+        catalog.patchQuery(INTERESTED_QUERY);
+        return;
+      }
+
+      // Salir de «Me interesa» tiene que soltar su filtro. Si no, «Esta semana»
+      // seguiría enseñando solo lo apuntado y nada en pantalla lo explicaría.
+      const leaving =
+        catalog.query.status === 'interested'
+          ? { status: 'all' as const, minCritic: undefined }
+          : {};
+
+      if (next === 'week') catalog.patchQuery({ week: WEEK_QUERY.week, ...leaving });
+      if (next === 'catalog') catalog.patchQuery({ week: CATALOG_QUERY.week, ...leaving });
     },
     [catalog],
   );
@@ -187,6 +219,9 @@ export function App() {
             {entry.id === 'week' && view === 'week' && watchedCount > 0 && (
               <span className="nav-item__count">{watchedCount} ✓</span>
             )}
+            {entry.id === 'interested' && (stats?.totalInterested ?? 0) > 0 && (
+              <span className="nav-item__count">{stats?.totalInterested}</span>
+            )}
           </button>
         ))}
 
@@ -298,7 +333,7 @@ export function App() {
             />
           ) : null}
 
-          {!needsOnboarding && (view === 'week' || view === 'catalog') && (
+          {!needsOnboarding && (view === 'week' || view === 'catalog' || view === 'interested') && (
             <Browse
               mode={view}
               query={catalog.query}
@@ -310,12 +345,19 @@ export function App() {
               onQueryChange={catalog.patchQuery}
               onReset={() => {
                 setSearchDraft('');
-                catalog.setQuery(view === 'week' ? WEEK_QUERY : CATALOG_QUERY);
+                catalog.setQuery(
+                  view === 'week'
+                    ? WEEK_QUERY
+                    : view === 'interested'
+                      ? INTERESTED_QUERY
+                      : CATALOG_QUERY,
+                );
               }}
               onOpen={setSelectedId}
               onToggleWatched={(id, watched) => void toggleWatched(id, watched)}
               onToggleInterested={(id, interested) => void toggleInterested(id, interested)}
               onGoToSettings={() => goTo('settings')}
+              onGoToWeek={() => goTo('week')}
               onRunAgent={() => void agent.run()}
             />
           )}
@@ -323,10 +365,7 @@ export function App() {
           {view === 'watched' && (
             <Watched
               onGoToWeek={() => goTo('week')}
-              onGoToInterested={() => {
-                goTo('catalog');
-                catalog.patchQuery({ week: 'all', status: 'interested' });
-              }}
+              onGoToInterested={() => goTo('interested')}
             />
           )}
 

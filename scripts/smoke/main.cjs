@@ -133,8 +133,14 @@ app.whenReady().then(async () => {
     if (!survives.app) {
       return fail(`la interfaz apareció y se cayó durante el montaje. Queda: «${survives.texto}»`);
     }
-    if (survives.navegacion < 5) {
-      return fail(`navegación incompleta (${survives.navegacion} entradas)`);
+    // El número es el de secciones de la aplicación (NAV en App.tsx). Se
+    // actualiza a mano a propósito: si alguien quita una sección sin querer,
+    // esta prueba lo dice en vez de dejarlo pasar.
+    const SECCIONES = 6;
+    if (survives.navegacion < SECCIONES) {
+      return fail(
+        `navegación incompleta: ${survives.navegacion} entradas, se esperaban ${SECCIONES}`,
+      );
     }
     if (problems.length > 0) {
       return fail('la interfaz sigue en pie, pero ha habido errores en consola');

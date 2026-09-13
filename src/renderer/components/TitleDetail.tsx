@@ -10,6 +10,7 @@ import {
   formatSeasons,
   mediaLabel,
 } from '../format';
+import { platformLink, type PlatformLink } from '../../core/domain/platform-links';
 import { PlatformBadges } from './PlatformBadge';
 import { api } from '../api';
 import { CriticBadges, CriticScore } from './Ratings';
@@ -37,9 +38,20 @@ export function TitleDetail({
 }: TitleDetailProps) {
   const { title, critic, personal, delta } = view;
   const duration = formatRuntime(title.runtimeMinutes) ?? formatSeasons(title.seasons);
-  // Solo las plataformas que traen enlace: un botón que no lleva a ningún sitio
-  // es peor que no tener botón (FR-049).
-  const watchLinks = title.platforms.filter((platform) => Boolean(platform.link));
+  /*
+    TMDB da **un solo** enlace por región —una página suya que lista dónde ver
+    el título— y lo repite en todas las plataformas. Hasta ahora se pintaba un
+    botón «Ver en Netflix» por plataforma, y todos llevaban al mismo sitio, que
+    además no era Netflix. Ahora se enseña una vez y con su nombre (FR-049).
+  */
+  const tmdbWatchUrl = title.platforms.find((platform) => platform.link)?.link ?? null;
+
+  // Un enlace por plataforma, diciendo lo que cada uno hace de verdad (FR-056).
+  const platformLinks = title.platforms
+    .map((platform) => ({ platform, link: platformLink(platform.id, platform.name, title.title) }))
+    .filter((entry): entry is { platform: typeof entry.platform; link: PlatformLink } =>
+      entry.link !== null,
+    );
 
   return (
     <div
@@ -153,21 +165,42 @@ export function TitleDetail({
             </section>
           )}
 
-          {watchLinks.length > 0 && (
+          {(platformLinks.length > 0 || tmdbWatchUrl) && (
             <section className="section">
               <h4 className="section__title">Dónde verla</h4>
               <div className="trailer">
-                {watchLinks.map((platform) => (
+                {platformLinks.map(({ platform, link }) => (
                   <button
                     key={platform.id}
                     type="button"
                     className="btn"
-                    onClick={() => void api.shell.openExternal(platform.link!)}
+                    onClick={() => void api.shell.openExternal(link.url)}
+                    title={
+                      link.kind === 'search'
+                        ? `Abre la búsqueda de ${platform.name} con «${title.title}»`
+                        : `Abre ${platform.name}; su buscador no admite el término en la dirección`
+                    }
                   >
-                    Ver en {platform.name} ↗
+                    {link.kind === 'search' ? '🔎 ' : ''}
+                    {link.label} ↗
                   </button>
                 ))}
+                {tmdbWatchUrl && (
+                  <button
+                    type="button"
+                    className="btn btn--ghost"
+                    onClick={() => void api.shell.openExternal(tmdbWatchUrl)}
+                    title="Página de TMDB con todas las formas de verla en España"
+                  >
+                    Ver opciones en TMDB ↗
+                  </button>
+                )}
               </div>
+              <p className="field__hint" style={{ marginTop: 8 }}>
+                Las plataformas no publican la dirección exacta de cada título, así que estos
+                botones abren su buscador con el nombre ya escrito. Es un clic más, pero no te
+                deja en una página que no existe.
+              </p>
             </section>
           )}
 

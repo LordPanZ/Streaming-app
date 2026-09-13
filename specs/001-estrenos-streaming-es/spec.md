@@ -410,6 +410,36 @@ concreto.
 - *Criterio:* Dado el nombre de un actor con tilde escrito sin ella, cuando se
   busca, entonces el título aparece igualmente.
 
+**FR-056 — Enlace a la plataforma desde cada título.**
+Cada título ofrece, para cada plataforma donde está disponible, un enlace que
+lleva a esa plataforma con el título ya buscado. El texto del botón dice lo que
+el enlace hace de verdad: «Buscar en X» cuando abre su buscador, «Abrir X»
+cuando solo se puede abrir la portada (ADR-018).
+
+- *Criterio:* Dada una película en Netflix, cuando el usuario pulsa la etiqueta
+  «Netflix» de su tarjeta, entonces se abre el buscador de Netflix con el
+  título escrito.
+- *Criterio:* Dada una plataforma sin ruta de búsqueda conocida, cuando se
+  ofrece su enlace, entonces se abre su portada y el botón **no** promete una
+  búsqueda.
+- *Criterio:* Dada la página de TMDB que lista dónde ver el título, cuando se
+  muestra, entonces aparece **una sola vez** y con su nombre, no repetida bajo
+  el nombre de cada plataforma.
+- *Criterio:* Dada una plataforma sin dirección declarada, cuando se pide su
+  enlace, entonces no se ofrece ninguno en lugar de inventarse uno.
+
+**FR-057 — Sección propia de «Me interesa».**
+La lista de lo apuntado tiene su propia entrada en la navegación, con el número
+de títulos pendientes, y no depende de recordar un filtro.
+
+- *Criterio:* Dada la sección, cuando se abre, entonces muestra todos los
+  títulos marcados y todavía sin ver, de todas las semanas.
+- *Criterio:* Dado un listón de calidad activo (FR-053), cuando se abre la
+  sección, entonces se ven **también** los títulos que no llegan al mínimo: el
+  usuario los apuntó a mano y el listón no puede contradecirlo.
+- *Criterio:* Dado que se sale de la sección, cuando se vuelve a «Esta semana»,
+  entonces el filtro de la lista ya no se aplica.
+
 ### 5.9 Android
 
 **FR-043 — Aplicación para Android.**

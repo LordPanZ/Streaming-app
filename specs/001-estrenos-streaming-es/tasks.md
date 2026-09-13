@@ -151,6 +151,16 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T164** El buscador mira género, plataforma, reparto, dirección, año y tipo *(FR-055)* → `searchHaystack`
 - [x] **T165** Varias palabras cruzando campos: «netflix terror» *(FR-055)*
 
+## Fase 16 — Sección propia y enlaces que llevan a algún sitio (v1.4.0)
+
+- [x] **T170** Sección «Me interesa» en la navegación, con contador *(FR-057)* → `renderer/App.tsx`
+- [x] **T171** El listón de calidad no esconde lo apuntado a mano *(FR-057, FR-053)* → `INTERESTED_QUERY`
+- [x] **T172** Salir de la sección suelta su filtro, en vez de dejarlo pegado *(FR-057)*
+- [x] **T173** Direcciones por plataforma, separadas del catálogo del dominio *(FR-056, ADR-018)* → `core/domain/platform-links.ts`
+- [x] **T174** Etiqueta de plataforma clicable en la tarjeta *(FR-056)* → `renderer/components/PlatformBadge.tsx`
+- [x] **T175** «Dónde verla»: un botón por plataforma y el de TMDB una sola vez, con su nombre *(FR-049, FR-056)*
+- [x] **T176** Gancho único de estadísticas, compartido por «Mis vistas» y el contador *(FR-033)* → `renderer/hooks/useStats.ts`
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué
@@ -166,3 +176,4 @@ requisitos quedan sin cobertura automática por su culpa.
 - [ ] **T097** Comprobación del APK en un móvil Android real *(FR-043, FR-045)*
 - [ ] **T098** Selector de archivos nativo para importar en Android *(FR-038)*
 - [ ] **T099** Sincronización opcional entre el PC y el móvil
+- [ ] **T100** Comprobar contra los servidores reales los buscadores de cada plataforma *(FR-056, ADR-018)*

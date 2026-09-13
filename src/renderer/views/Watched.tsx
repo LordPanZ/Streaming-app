@@ -1,9 +1,7 @@
 /** Vista «Mis vistas» con estadísticas (FR-033). */
 
-import { useEffect, useState } from 'react';
-import type { WatchedStats } from '../../shared/types';
-import { api, describeApiError, unwrap } from '../api';
 import { formatScore, pluralize } from '../format';
+import { useStats } from '../hooks/useStats';
 import { Banner, EmptyState } from '../components/EmptyState';
 
 export function Watched({
@@ -13,20 +11,7 @@ export function Watched({
   onGoToWeek: () => void;
   onGoToInterested: () => void;
 }) {
-  const [stats, setStats] = useState<WatchedStats | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setStats(await unwrap(api.ratings.stats()));
-      } catch (caught) {
-        setError(describeApiError(caught));
-      }
-    };
-    void load();
-    return api.on.catalogChanged(() => void load());
-  }, []);
+  const { stats, error } = useStats();
 
   if (error) return <Banner tone="error">{error}</Banner>;
   if (!stats) return <EmptyState icon="⏳" title="Cargando…" text="Calculando tus estadísticas." />;

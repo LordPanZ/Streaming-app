@@ -97,7 +97,7 @@ export function TitleCard({
         <CriticBadges ratings={title.ratings} />
 
         <div className="card__footer">
-          <PlatformBadges platforms={title.platforms.slice(0, 2)} />
+          <PlatformBadges platforms={title.platforms.slice(0, 2)} titleName={title.title} />
           {title.platforms.length > 2 && (
             <span className="chip">+{title.platforms.length - 2}</span>
           )}

@@ -7,7 +7,7 @@ import { TitleCard } from '../components/TitleCard';
 import { Banner, EmptyState } from '../components/EmptyState';
 
 interface BrowseProps {
-  mode: 'week' | 'catalog';
+  mode: 'week' | 'catalog' | 'interested';
   query: CatalogQuery;
   page: CatalogPage;
   facets: CatalogFacets | null;
@@ -20,6 +20,7 @@ interface BrowseProps {
   onToggleWatched: (id: string, watched: boolean) => void;
   onToggleInterested: (id: string, interested: boolean) => void;
   onGoToSettings: () => void;
+  onGoToWeek: () => void;
   onRunAgent: () => void;
 }
 
@@ -38,22 +39,31 @@ export function Browse(props: BrowseProps) {
     onToggleWatched,
     onToggleInterested,
     onGoToSettings,
+    onGoToWeek,
     onRunAgent,
   } = props;
 
   const currentWeek = facets?.currentWeek;
   const isEmptyCatalog = (facets?.totalTitles ?? 0) === 0;
 
+  const heading =
+    mode === 'week'
+      ? 'Estrenos de esta semana'
+      : mode === 'interested'
+        ? 'Me interesa'
+        : 'Catálogo completo';
+
+  const subheading =
+    mode === 'week' && currentWeek
+      ? `Semana ${currentWeek} · ${formatWeekLabel(currentWeek)}`
+      : mode === 'interested'
+        ? 'Lo que has apuntado para ver. Al marcar algo como visto, sale de aquí.'
+        : 'Todo lo que ha recopilado el agente hasta ahora.';
+
   return (
     <>
-      <h1 className="page-title">
-        {mode === 'week' ? 'Estrenos de esta semana' : 'Catálogo completo'}
-      </h1>
-      <p className="page-subtitle">
-        {mode === 'week' && currentWeek
-          ? `Semana ${currentWeek} · ${formatWeekLabel(currentWeek)}`
-          : 'Todo lo que ha recopilado el agente hasta ahora.'}
-      </p>
+      <h1 className="page-title">{heading}</h1>
+      <p className="page-subtitle">{subheading}</p>
 
       {error && <Banner tone="error">{error}</Banner>}
 
@@ -69,7 +79,7 @@ export function Browse(props: BrowseProps) {
         Decirlo aquí evita la pregunta «¿por qué salen tan pocos?», y el botón
         deja verlos sin tener que ir a Ajustes a desactivar nada.
       */}
-      {(facets?.belowFloor ?? 0) > 0 && query.minCritic === undefined && (
+      {mode !== 'interested' && (facets?.belowFloor ?? 0) > 0 && query.minCritic === undefined && (
         <Banner tone="info" actionLabel="Ver también esos" onAction={() => onQueryChange({ minCritic: 0 })}>
           {facets?.belowFloor === 1
             ? '1 título recopilado no llega a tu nota mínima y no se está mostrando.'
@@ -88,7 +98,15 @@ export function Browse(props: BrowseProps) {
       {loading && page.items.length === 0 ? (
         <EmptyState icon="⏳" title="Cargando…" text="Consultando el catálogo local." />
       ) : page.items.length === 0 ? (
-        isEmptyCatalog ? (
+        mode === 'interested' ? (
+          <EmptyState
+            icon="★"
+            title="No has apuntado nada todavía"
+            text="Pulsa «☆ Me interesa» en cualquier tarjeta o ficha y el título aparecerá aquí, esperando a que le busques un hueco."
+            actionLabel="Ver los estrenos de la semana"
+            onAction={onGoToWeek}
+          />
+        ) : isEmptyCatalog ? (
           <EmptyState
             icon="🍿"
             title="Todavía no hay nada recopilado"
