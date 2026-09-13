@@ -71,7 +71,7 @@ automático nada que no lo esté.
 | FR-054 «Me interesa verla» | `core/store/ratings.ts` (`setInterested`, invariante 8, `normalizeRating`), `core/domain/filters.ts` (`matchesStatus`), `renderer/components/TitleCard.tsx`, `renderer/components/RatingPanel.tsx`, `renderer/views/Watched.tsx` | `unit/stores.test.ts` → bloque «me interesa verla» (5 casos, incluida la migración); `unit/filters.test.ts` → «matchesStatus con me interesa»; `unit/validate.test.ts` → `parseSetInterested` | Automática |
 | FR-055 Búsqueda por varios términos y campos | `core/domain/filters.ts` (`searchHaystack`, `matchesText`) | `unit/filters.test.ts` → «matchesText sobre todos los campos» (7 casos, incluido el que fija que la sinopsis queda fuera) | Automática |
 | FR-056 Enlace a la plataforma | `core/domain/platform-links.ts`, `renderer/components/PlatformBadge.tsx`, `renderer/components/TitleDetail.tsx` | `unit/platform-links.test.ts` (8 casos): cobertura de todas las plataformas del catálogo, codificación del término, y que una portada no se anuncie como búsqueda | Automática en la forma del enlace; **las direcciones no se han podido abrir** desde este entorno (ADR-018) |
-| FR-057 Sección propia de «Me interesa» | `renderer/App.tsx` (`INTERESTED_QUERY`, navegación), `renderer/views/Browse.tsx` (modo `interested`) | `unit/filters.test.ts` → «el listón de calidad no puede esconder lo que se apuntó a mano»; el resto, comprobado en la aplicación en marcha | Parcial: la regla del listón es automática, la navegación es manual (T094) |
+| FR-057 Sección propia de «Me interesa» | `shared/view-queries.ts`, `renderer/App.tsx` (navegación), `renderer/views/Browse.tsx` (modo `interested`) | `unit/view-queries.test.ts` (9 casos): recorre consulta → validación → filtrado, con un testigo que comprueba que la prueba mide algo; `unit/validate.test.ts` → cobertura de los estados del contrato | Automática la costura completa; la navegación sigue siendo manual (T094) |
 | FR-051 Datos de ejemplo | `core/domain/sample-catalog.ts`, `core/agent/stages/persist.ts` | `unit/sample-catalog.test.ts` (14 casos) y `unit/pipeline.test.ts` → «la primera recopilación real retira los títulos de ejemplo» | Automática |
 
 ## 2. Requisitos no funcionales
@@ -171,6 +171,33 @@ certificado de los APK ya publicados, que seguían disponibles.
 Lección aplicada a la matriz: «se construye» y «se instala» son dos cosas, y
 «se instala» y «se actualiza» son otras dos. Un artefacto de distribución tiene
 un ciclo de vida propio que las pruebas de la aplicación no tocan.
+
+El cuarto lo encontró el usuario a los pocos minutos de abrir la versión 1.4.0:
+la sección «Me interesa» enseñaba el catálogo entero.
+
+Las tres piezas estaban bien y las tres estaban probadas. El tipo
+`WatchStatusFilter` declaraba `'interested'`. `matchesStatus` lo trataba, con su
+prueba. La interfaz lo enviaba, comprobado en la aplicación en marcha. Lo que
+falló fue la pieza de en medio: el validador de la frontera IPC tenía su propia
+lista de estados permitidos y nadie la actualizó, así que rechazaba la consulta
+entera. Y como la interfaz conservaba los resultados anteriores al fallar, en
+pantalla no aparecía un error sino la lista de antes.
+
+Dos agujeros, no uno:
+
+- **Nadie recorría la costura.** Cada mitad tenía prueba; el camino completo
+  —consulta de la sección → validación → filtrado— no. Por eso las consultas de
+  arranque se han sacado de `App.tsx` a `shared/view-queries.ts`: ahora hay un
+  módulo que las pruebas pueden importar y recorrer entero.
+- **El tipo no obligaba a nada.** `readonly WatchStatusFilter[]` admite
+  cualquier subconjunto, así que el compilador no tenía nada que objetar ante
+  una lista incompleta. Ahora hay una comprobación de cobertura que falla la
+  compilación nombrando el valor que falta.
+
+Lección aplicada a la matriz: una fila por requisito no basta cuando el
+requisito atraviesa tres capas. Lo que hay que probar no son las piezas, es el
+camino; y una lista de valores permitidos que duplica una unión de tipos es una
+copia que se desincroniza sola salvo que el compilador lo impida.
 
 ## 4. Requisitos sin cobertura automática
 

@@ -98,10 +98,36 @@ export function parseTitleId(value: unknown): string {
   return value;
 }
 
-const MEDIA_TYPES: readonly (MediaType | 'all')[] = ['movie', 'series', 'all'];
-const STATUSES: readonly WatchStatusFilter[] = ['all', 'watched', 'pending', 'rated'];
-const SORT_FIELDS: readonly SortField[] = ['date', 'critic', 'personal', 'title'];
-const SORT_ORDERS: readonly SortOrder[] = ['asc', 'desc'];
+const MEDIA_TYPES = ['movie', 'series', 'all'] as const;
+/** Estados que admite una consulta. Es contrato: las pruebas afirman sobre él. */
+export const STATUSES = ['all', 'watched', 'pending', 'rated', 'interested'] as const;
+const SORT_FIELDS = ['date', 'critic', 'personal', 'title'] as const;
+const SORT_ORDERS = ['asc', 'desc'] as const;
+
+/**
+ * Cobertura de las listas anteriores, comprobada por el compilador.
+ *
+ * Existe por un fallo real y caro: `WatchStatusFilter` ganó el valor
+ * `'interested'` para la sección «Me interesa», esta lista se quedó sin él, y
+ * la consulta de la sección pasó a fallar la validación. Como la interfaz
+ * conservaba los resultados anteriores al fallar, en pantalla no se veía un
+ * error sino el catálogo entero: parecía que el filtro no filtraba.
+ *
+ * Declarar la lista como `readonly WatchStatusFilter[]` no ayudaba: un
+ * subconjunto también encaja en ese tipo, así que el compilador no tenía nada
+ * que objetar. Esto sí: si la unión gana un valor que no esté en su lista, la
+ * compilación falla **nombrando el valor que falta**.
+ */
+type Missing<Union, List extends readonly unknown[]> = Exclude<Union, List[number]>;
+type Covered<Union, List extends readonly unknown[]> =
+  Missing<Union, List> extends never ? true : Missing<Union, List>;
+
+const _listasCompletas: [
+  Covered<MediaType | 'all', typeof MEDIA_TYPES>,
+  Covered<WatchStatusFilter, typeof STATUSES>,
+  Covered<SortField, typeof SORT_FIELDS>,
+  Covered<SortOrder, typeof SORT_ORDERS>,
+] = [true, true, true, true];
 
 export function parseCatalogQuery(input: unknown): CatalogQuery {
   const raw = asObject(input ?? {}, 'La consulta');

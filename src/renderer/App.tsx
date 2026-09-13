@@ -4,7 +4,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { CatalogQuery, TitleView } from '../shared/types';
+import type { TitleView } from '../shared/types';
+import { CATALOG_QUERY, INTERESTED_QUERY, WEEK_QUERY } from '../shared/view-queries';
 import { api, describeApiError, unwrap } from './api';
 import { formatDateTime, STAGE_LABEL } from './format';
 import { useAgent } from './hooks/useAgent';
@@ -20,25 +21,6 @@ import { SettingsView } from './views/SettingsView';
 import { Watched } from './views/Watched';
 
 type ViewName = 'week' | 'catalog' | 'interested' | 'watched' | 'runs' | 'settings';
-
-const WEEK_QUERY: CatalogQuery = { week: 'current', sort: 'date', order: 'desc', limit: 60 };
-const CATALOG_QUERY: CatalogQuery = { week: 'all', sort: 'date', order: 'desc', limit: 60 };
-
-/**
- * Consulta de la sección «Me interesa» (FR-057).
- *
- * `minCritic: 0` no es un descuido: el listón de calidad (FR-053) no puede
- * esconder algo que el usuario ha apuntado a mano. Si lo marcó, lo quiere ver,
- * tenga la nota que tenga.
- */
-const INTERESTED_QUERY: CatalogQuery = {
-  week: 'all',
-  status: 'interested',
-  minCritic: 0,
-  sort: 'date',
-  order: 'desc',
-  limit: 60,
-};
 
 const NAV: Array<{ id: ViewName; label: string; icon: string }> = [
   { id: 'week', label: 'Esta semana', icon: '📅' },

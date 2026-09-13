@@ -161,6 +161,14 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T175** «Dónde verla»: un botón por plataforma y el de TMDB una sola vez, con su nombre *(FR-049, FR-056)*
 - [x] **T176** Gancho único de estadísticas, compartido por «Mis vistas» y el contador *(FR-033)* → `renderer/hooks/useStats.ts`
 
+## Fase 17 — El filtro de «Me interesa» no filtraba (v1.4.1)
+
+- [x] **T180** `'interested'` entra en la lista de estados del validador *(FR-057)* → `shared/validate.ts`
+- [x] **T181** Comprobación de cobertura: la compilación falla si una unión gana un valor que su lista no tiene *(NFR-008)*
+- [x] **T182** Una consulta fallida limpia los resultados en vez de dejar los anteriores en pantalla *(FR-028)* → `renderer/hooks/useCatalog.ts`
+- [x] **T183** Las consultas de arranque salen de `App.tsx` a un módulo compartido y probable *(FR-028, FR-057)* → `shared/view-queries.ts`
+- [x] **T184** Prueba de la costura: consulta de la sección → validación → filtrado *(FR-057)* → `unit/view-queries.test.ts`
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

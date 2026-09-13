@@ -24,6 +24,11 @@ export function useCatalog(initialQuery: CatalogQuery) {
       setFacets(nextFacets);
       setError(null);
     } catch (caught) {
+      // Los resultados anteriores no responden a la consulta que acaba de
+      // fallar: dejarlos en pantalla es enseñar una lista que no corresponde
+      // al filtro. Fue justo así como un error de validación en la sección
+      // «Me interesa» pareció que el filtro no filtraba.
+      setPage(EMPTY_PAGE);
       setError(describeApiError(caught));
     } finally {
       setLoading(false);
