@@ -16,16 +16,25 @@ import { Banner } from './components/EmptyState';
 import { TitleDetail } from './components/TitleDetail';
 import { Browse } from './views/Browse';
 import { Onboarding } from './views/Onboarding';
+import { Rankings } from './views/Rankings';
 import { Runs } from './views/Runs';
 import { SettingsView } from './views/SettingsView';
 import { Watched } from './views/Watched';
 
-type ViewName = 'week' | 'catalog' | 'interested' | 'watched' | 'runs' | 'settings';
+type ViewName =
+  | 'week'
+  | 'catalog'
+  | 'interested'
+  | 'rankings'
+  | 'watched'
+  | 'runs'
+  | 'settings';
 
 const NAV: Array<{ id: ViewName; label: string; icon: string }> = [
   { id: 'week', label: 'Esta semana', icon: '📅' },
   { id: 'catalog', label: 'Catálogo', icon: '🎞️' },
   { id: 'interested', label: 'Me interesa', icon: '★' },
+  { id: 'rankings', label: 'Lo mejor', icon: '🏆' },
   { id: 'watched', label: 'Mis vistas', icon: '✓' },
   { id: 'runs', label: 'Ejecuciones', icon: '📋' },
   { id: 'settings', label: 'Ajustes', icon: '⚙️' },
@@ -342,6 +351,10 @@ export function App() {
               onGoToWeek={() => goTo('week')}
               onRunAgent={() => void agent.run()}
             />
+          )}
+
+          {view === 'rankings' && (
+            <Rankings hasKeys={hasKeys} onGoToSettings={() => goTo('settings')} />
           )}
 
           {view === 'watched' && (

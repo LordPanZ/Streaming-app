@@ -89,6 +89,20 @@ export interface DiscoverParams {
   page?: number;
 }
 
+/** Consulta de lo mejor valorado de un año en la región (FR-058). */
+export interface TopRatedParams {
+  mediaType: MediaType;
+  year: number;
+  providerIds: readonly number[];
+  /**
+   * Votos mínimos en TMDB. Es el parámetro que separa una clasificación de una
+   * curiosidad: sin él, lo primero que devuelve TMDB son títulos con tres votos
+   * y un 10 de media.
+   */
+  minVotes: number;
+  page?: number;
+}
+
 export interface TmdbClientOptions {
   apiKey: string;
   http: HttpClient;
@@ -160,6 +174,35 @@ export class TmdbClient {
       results.push(...next.results);
     }
     return results;
+  }
+
+  /**
+   * Lo mejor valorado de un año entre las plataformas dadas (FR-058).
+   *
+   * `with_watch_providers` admite varios separados por `|` (o lógico), así que
+   * una sola petición cubre todas las plataformas activas en vez de una por
+   * plataforma como hace el descubrimiento semanal.
+   */
+  async topRated(params: TopRatedParams): Promise<TmdbDiscoverPage> {
+    const isMovie = params.mediaType === 'movie';
+    const yearField = isMovie ? 'primary_release_year' : 'first_air_date_year';
+
+    const url = this.url(`/discover/${isMovie ? 'movie' : 'tv'}`, {
+      language: this.language,
+      watch_region: this.region,
+      with_watch_providers: params.providerIds.join('|'),
+      with_watch_monetization_types: 'flatrate',
+      [yearField]: String(params.year),
+      'vote_count.gte': String(params.minVotes),
+      sort_by: 'vote_average.desc',
+      include_adult: 'false',
+      page: String(params.page ?? 1),
+    });
+
+    return this.http.getJson<TmdbDiscoverPage>(url, {
+      cacheTtlMs: this.cacheTtlMs,
+      label: `mejor valorado ${params.mediaType} de ${params.year}`,
+    });
   }
 
   /**

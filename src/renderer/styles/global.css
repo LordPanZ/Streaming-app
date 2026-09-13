@@ -607,6 +607,63 @@ a {
   flex-shrink: 0;
 }
 
+/* --- Clasificación por año (FR-058) --------------------------------------- */
+
+.ranking {
+  list-style: none;
+  counter-reset: puesto;
+  margin: 0;
+  padding: 0;
+}
+
+.ranking li {
+  counter-increment: puesto;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ranking li:last-child {
+  border-bottom: none;
+}
+
+/* El número lo pone el contador: así la lista no depende de que el dato venga
+   numerado desde el otro lado de la frontera. */
+.ranking li::before {
+  content: counter(puesto) '.';
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  min-width: 22px;
+}
+
+.ranking__title {
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+}
+
+.ranking__score {
+  color: var(--accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking__where {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  width: 100%;
+}
+
+/* Desde tamaño cómodo, la plataforma cabe en la misma línea. */
+@media (min-width: 560px) {
+  .ranking__where {
+    width: auto;
+  }
+}
+
 /* --- Ficha de detalle ----------------------------------------------------- */
 
 .overlay {

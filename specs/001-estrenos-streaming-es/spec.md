@@ -440,6 +440,26 @@ de títulos pendientes, y no depende de recordar un filtro.
 - *Criterio:* Dado que se sale de la sección, cuando se vuelve a «Esta semana»,
   entonces el filtro de la lista ya no se aplica.
 
+**FR-058 — Las mejores de un año.**
+La aplicación puede listar las diez mejores películas y las diez mejores series
+de un año concreto, entre las disponibles en las plataformas activas en España.
+
+La nota es la **media simple de IMDb, Rotten Tomatoes y TMDB**, no el índice de
+crítica del catálogo (FR-026), que pondera cuatro fuentes. Son dos números
+distintos y cada pantalla dice cuál está enseñando.
+
+- *Criterio:* Dado un año, cuando se calcula, entonces salen dos listas
+  numeradas con el título, la nota sobre 10 y, entre paréntesis, la plataforma.
+- *Criterio:* Dado un título sin alguna de las tres notas, cuando entra en la
+  lista, entonces la media se calcula sobre las presentes y se marca que no son
+  tres: lo ausente nunca cuenta como cero.
+- *Criterio:* Dado un título con una sola de las tres notas, cuando se ordena,
+  entonces queda fuera: con una fuente no hay media.
+- *Criterio:* Dado que se consulta un año, cuando termina, entonces el catálogo
+  del usuario **no** cambia: una clasificación se consulta, no se recopila.
+- *Criterio:* Dado el coste en cuota diaria de OMDb, cuando se va a consultar,
+  entonces se advierte antes de gastar.
+
 ### 5.9 Android
 
 **FR-043 — Aplicación para Android.**

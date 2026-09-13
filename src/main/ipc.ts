@@ -75,6 +75,8 @@ export function registerIpcHandlers(ctx: IpcContext): void {
   handle(IPC.ratingsClear, (payload) => service.ratingsClear(payload));
   handle(IPC.ratingsStats, () => service.ratingsStats());
 
+  handle(IPC.rankingTopOfYear, (payload) => service.rankingTopOfYear(payload));
+
   handle(IPC.agentRun, () => service.agentRun());
   handle(IPC.agentStatus, () => service.agentStatus());
   handle(IPC.agentRuns, (payload) => service.agentRuns(payload));

@@ -136,7 +136,7 @@ app.whenReady().then(async () => {
     // El número es el de secciones de la aplicación (NAV en App.tsx). Se
     // actualiza a mano a propósito: si alguien quita una sección sin querer,
     // esta prueba lo dice en vez de dejarlo pasar.
-    const SECCIONES = 6;
+    const SECCIONES = 7;
     if (survives.navegacion < SECCIONES) {
       return fail(
         `navegación incompleta: ${survives.navegacion} entradas, se esperaban ${SECCIONES}`,

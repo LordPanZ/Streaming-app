@@ -92,6 +92,9 @@ export function createLocalApi(options: LocalApiOptions): IpcApi {
       status: () => wrap(() => service.agentStatus()),
       runs: (limit) => wrap(() => service.agentRuns(limit)),
     },
+    ranking: {
+      topOfYear: (input) => wrap(() => service.rankingTopOfYear(input)),
+    },
     settings: {
       get: () => wrap(() => service.settingsGet()),
       update: (patch) => wrap(() => service.settingsUpdate(patch)),

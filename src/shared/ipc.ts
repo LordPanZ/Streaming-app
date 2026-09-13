@@ -16,6 +16,7 @@ import type {
   CatalogPage,
   CatalogQuery,
   ImportResult,
+  RankingResult,
   SecretsStatus,
   Settings,
   TitleView,
@@ -33,6 +34,7 @@ export const IPC = {
   ratingsClear: 'ratings:clear',
   ratingsStats: 'ratings:stats',
   agentRun: 'agent:run',
+  rankingTopOfYear: 'ranking:top-of-year',
   agentStatus: 'agent:status',
   agentRuns: 'agent:runs',
   settingsGet: 'settings:get',
@@ -93,6 +95,11 @@ export interface SetWatchedInput {
   platform?: string | null;
 }
 
+export interface RankingInput {
+  year: number;
+  limit?: number;
+}
+
 export interface SetInterestedInput {
   titleId: string;
   interested: boolean;
@@ -146,6 +153,9 @@ export interface IpcApi {
     run(input: RunAgentInput): Promise<IpcResult<AgentRunSummary>>;
     status(): Promise<IpcResult<AgentStatus>>;
     runs(limit?: number): Promise<IpcResult<AgentRun[]>>;
+  };
+  ranking: {
+    topOfYear(input: RankingInput): Promise<IpcResult<RankingResult>>;
   };
   settings: {
     get(): Promise<IpcResult<Settings>>;

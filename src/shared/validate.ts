@@ -20,6 +20,7 @@ import type {
 } from './types';
 import type {
   ImportInput,
+  RankingInput,
   SetInterestedInput,
   SetScoresInput,
   SetSecretsInput,
@@ -206,6 +207,27 @@ export function parseSetWatched(input: unknown): SetWatchedInput {
     watchedAt: watchedAt ?? null,
     platform: optionalString(raw.platform, 'La plataforma', 60) ?? null,
   };
+}
+
+/**
+ * Año y tope de la clasificación (FR-058).
+ *
+ * El año se acota a un rango con sentido para el cine: pedirle a TMDB el año
+ * 99999 no devuelve nada útil y gasta una petición igual.
+ */
+export function parseRankingInput(input: unknown): RankingInput {
+  const raw = asObject(input, 'La orden');
+  const year = raw.year;
+  if (typeof year !== 'number' || !Number.isInteger(year) || year < 1900 || year > 2100) {
+    fail('El año debe ser un número entre 1900 y 2100.');
+  }
+
+  const limit = raw.limit;
+  if (limit === undefined || limit === null) return { year };
+  if (typeof limit !== 'number' || !Number.isFinite(limit) || limit <= 0) {
+    fail('El tope debe ser un número positivo.');
+  }
+  return { year, limit: Math.min(50, Math.floor(limit)) };
 }
 
 export function parseSetInterested(input: unknown): SetInterestedInput {

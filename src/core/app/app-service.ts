@@ -17,6 +17,8 @@ import type {
   AgentStatus,
   CatalogFacets,
   CatalogPage,
+  RankingEntry,
+  RankingResult,
   SecretsStatus,
   Settings,
   TitleView,
@@ -28,6 +30,7 @@ import {
   parseCatalogQuery,
   parseExternalUrl,
   parseImportInput,
+  parseRankingInput,
   parseRunsLimit,
   parseSecrets,
   parseSetInterested,
@@ -39,6 +42,9 @@ import {
   ValidationError,
 } from '../../shared/validate';
 import { applyQualityFloor } from '../domain/filters';
+import { collectTopOfYear } from '../agent/top-year';
+import type { RankedTitle } from '../domain/ranking';
+import { resolvePlatforms, PLATFORMS } from '../domain/platforms';
 import { sanitizeScores } from '../domain/criteria';
 import { buildSampleCatalog } from '../domain/sample-catalog';
 import { sanitizeMessage } from '../providers/http';
@@ -117,6 +123,64 @@ export class AppService {
       undefined,
       minCritic > 0 ? { minCritic, includeUnrated } : undefined,
     );
+  }
+
+  // --- Clasificación por año (FR-058) --------------------------------------
+
+  /**
+   * Las diez mejores películas y series de un año, por la media simple de
+   * IMDb, Rotten Tomatoes y TMDB.
+   *
+   * No toca el catálogo: consulta, responde y se va. La clasificación de un año
+   * cerrado no es «lo que hay esta semana» y mezclarlas dejaría el catálogo
+   * lleno de títulos viejos que el usuario no pidió recopilar.
+   */
+  async rankingTopOfYear(input: unknown): Promise<RankingResult> {
+    const parsed = parseRankingInput(input);
+    const settings = this.container.settings.get();
+    const tmdb = this.container.tmdb(settings);
+    if (!tmdb) throw new MissingApiKeyError('tmdb');
+
+    // Los identificadores de proveedor se resuelven contra el catálogo de la
+    // región, igual que en la recopilación semanal (FR-006).
+    const catalog = [
+      ...(await tmdb.providerCatalog('movie').catch(() => [])),
+      ...(await tmdb.providerCatalog('series').catch(() => [])),
+    ];
+    const enabled = PLATFORMS.filter(
+      (platform) => settings.platforms[platform.id] !== false,
+    ).map((platform) => platform.id);
+    const resolved = resolvePlatforms(enabled, catalog);
+
+    if (resolved.resolved.length === 0) {
+      throw new Error('No hay ninguna plataforma activa que consultar.');
+    }
+
+    const providerIds = resolved.resolved.map((platform) => platform.providerId);
+    const omdb = this.container.omdb(settings);
+    const before = this.container.http.metrics.requests;
+
+    const deps = { tmdb, omdb, now: () => new Date() };
+    const options = {
+      year: parsed.year,
+      providerIds,
+      limit: parsed.limit ?? 10,
+      // Dos páginas son 40 candidatos por lista. Subirlo mejora poco la cabeza
+      // de la lista y multiplica el gasto de cuota de OMDb, que es diaria.
+      candidatePages: 2,
+    };
+
+    const movies = await collectTopOfYear(deps, { ...options, mediaType: 'movie' });
+    const series = await collectTopOfYear(deps, { ...options, mediaType: 'series' });
+
+    return {
+      year: parsed.year,
+      movies: movies.ranked.map(toEntry),
+      series: series.ranked.map(toEntry),
+      considered: movies.considered + series.considered,
+      requests: this.container.http.metrics.requests - before,
+      issues: [...movies.issues, ...series.issues],
+    };
   }
 
   // --- Valoraciones --------------------------------------------------------
@@ -326,3 +390,16 @@ export class AppService {
 }
 
 export { ValidationError };
+
+/** Pasa una entrada clasificada a lo que cruza la frontera (FR-058). */
+function toEntry(ranked: RankedTitle): RankingEntry {
+  return {
+    titleId: ranked.title.id,
+    title: ranked.title.title,
+    year: ranked.title.year,
+    mediaType: ranked.title.mediaType,
+    score: ranked.score.score ?? 0,
+    sources: ranked.score.sources,
+    platforms: ranked.title.platforms.map((platform) => platform.name),
+  };
+}

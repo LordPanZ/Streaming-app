@@ -175,6 +175,16 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T191** Guardián con mensaje claro antes de la prueba de humo *(NFR-013)* → `scripts/smoke/ensure-electron.cjs`
 - [x] **T192** Documentado por qué el flujo del agente semanal sí puede saltársela *(NFR-002)*
 
+## Fase 19 — Las mejores del año (v1.5.0)
+
+- [x] **T200** Media simple de IMDb, Rotten Tomatoes y TMDB, separada del índice ponderado *(FR-058)* → `core/domain/ranking.ts`
+- [x] **T201** Consulta de lo mejor valorado de un año con mínimo de votos *(FR-058)* → `TmdbClient.topRated`
+- [x] **T202** Recopilador del año, en paralelo acotado y sin tocar el catálogo *(FR-058)* → `core/agent/top-year.ts`
+- [x] **T203** Formato de lista: nota con coma y, entre paréntesis, solo la plataforma *(FR-058)* → `core/domain/ranking-format.ts`
+- [x] **T204** Sección «Lo mejor» con selector de año y copia al portapapeles *(FR-058)* → `renderer/views/Rankings.tsx`
+- [x] **T205** Aviso del gasto de cuota diaria de OMDb antes de consultar *(FR-058, Art. V)*
+- [x] **T206** `--ranking 2023,2024,2025` en el modo consola *(FR-010, FR-058)*
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

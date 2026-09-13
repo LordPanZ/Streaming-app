@@ -336,6 +336,31 @@ export interface WatchedStats {
   topRated: Array<{ titleId: string; title: string; score: number }>;
 }
 
+/** Una entrada de la clasificación por año (FR-058). */
+export interface RankingEntry {
+  titleId: string;
+  title: string;
+  year: number | null;
+  mediaType: MediaType;
+  /** Media 0–10 de IMDb, Rotten Tomatoes y TMDB. */
+  score: number;
+  /** Cuántas de las tres aportaron nota: con menos de tres se dice. */
+  sources: number;
+  /** Nombres de plataforma, que es lo único que va entre paréntesis. */
+  platforms: string[];
+}
+
+export interface RankingResult {
+  year: number;
+  movies: RankingEntry[];
+  series: RankingEntry[];
+  /** Títulos examinados antes de exigir notas. */
+  considered: number;
+  /** Peticiones de red gastadas: importa, porque la cuota de OMDb es diaria. */
+  requests: number;
+  issues: string[];
+}
+
 export interface SecretsStatus {
   tmdb: { present: boolean; hint: string | null };
   omdb: { present: boolean; hint: string | null };

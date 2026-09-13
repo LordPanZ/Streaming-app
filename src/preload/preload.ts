@@ -19,6 +19,7 @@ import {
   type CatalogChangedEvent,
   type ImportInput,
   type IpcApi,
+  type RankingInput,
   type RunAgentInput,
   type SetInterestedInput,
   type SetScoresInput,
@@ -57,6 +58,9 @@ const api: IpcApi = {
     run: (input: RunAgentInput) => invoke(IPC.agentRun, input),
     status: () => invoke(IPC.agentStatus),
     runs: (limit?: number) => invoke(IPC.agentRuns, limit),
+  },
+  ranking: {
+    topOfYear: (input: RankingInput) => invoke(IPC.rankingTopOfYear, input),
   },
   settings: {
     get: () => invoke(IPC.settingsGet),
