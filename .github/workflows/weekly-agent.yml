@@ -42,6 +42,10 @@ jobs:
             echo "continuar=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # Aquí sí se salta la descarga del binario de Electron, y es correcto:
+      # este flujo ejecuta el agente en Node, sin abrir ninguna ventana. Si
+      # algún día se añade aquí la prueba de humo, hay que quitar la variable
+      # (`scripts/smoke/ensure-electron.cjs` lo dirá en claro).
       - name: Instalar dependencias
         if: steps.claves.outputs.continuar == 'true'
         run: npm ci

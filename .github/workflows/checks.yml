@@ -20,10 +20,14 @@ jobs:
 
       # NFR-002: la instalación y las pruebas no dependen de las APIs de
       # terceros ni de ninguna clave.
+      #
+      # Aquí NO se salta la descarga del binario de Electron. Se saltaba, y la
+      # prueba de humo del final llevaba tres versiones fallando por eso: el
+      # paquete de npm estaba, pero sin binario que ejecutar. El flujo del
+      # agente semanal sí puede saltársela, porque corre en Node y no abre
+      # ninguna ventana.
       - name: Instalar dependencias
         run: npm ci
-        env:
-          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
 
       - name: Comprobar tipos
         run: npm run typecheck

@@ -199,6 +199,32 @@ requisito atraviesa tres capas. Lo que hay que probar no son las piezas, es el
 camino; y una lista de valores permitidos que duplica una unión de tipos es una
 copia que se desincroniza sola salvo que el compilador lo impida.
 
+El quinto lo trajo el usuario reenviando un correo: el flujo «Comprobaciones»
+llevaba **tres versiones** fallando en cada envío, y nadie lo había mirado.
+
+La causa era vieja conocida. El paso de instalación ponía
+`ELECTRON_SKIP_BINARY_DOWNLOAD=1` —razonable cuando solo se compila y se pasan
+pruebas— y al final ejecutaba la prueba de humo, que necesita Electron de
+verdad. Exactamente el mismo fallo se había corregido semanas antes en el flujo
+del APK, y nadie buscó el mismo patrón en los demás.
+
+Pero lo que falló de verdad no fue el flujo: fue la vigilancia. Cada publicación
+se comprobaba mirando el flujo de publicación, que iba en verde porque hace su
+propia compilación. El de comprobaciones, que corre en cada envío, no lo miraba
+nadie. Un aviso que nadie lee no es un aviso.
+
+Dos cosas cambian:
+
+- El error deja de ser críptico. `scripts/smoke/ensure-electron.cjs` se ejecuta
+  antes y dice qué falta y qué variable lo provoca, en vez del
+  «Electron failed to install correctly» que llega desde dentro de `electron/cli.js`.
+- El flujo del agente semanal, que sí puede saltarse la descarga porque corre en
+  Node, lo lleva ahora escrito al lado de la variable.
+
+Lección aplicada a la matriz: arreglar un fallo en un sitio obliga a buscar el
+mismo patrón en los demás; y «la publicación salió bien» no es «la integración
+continua está en verde», porque no son el mismo flujo.
+
 ## 4. Requisitos sin cobertura automática
 
 Se declaran aquí para que consten, en lugar de darlos por probados:

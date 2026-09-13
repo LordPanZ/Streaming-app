@@ -24,7 +24,7 @@
     "lint": "eslint src scripts tests --ext .ts,.tsx",
     "package": "npm run build && electron-builder --publish never",
     "package:all": "npm run build && electron-builder -mwl --publish never",
-    "smoke": "xvfb-run -a electron --no-sandbox scripts/smoke/main.cjs",
+    "smoke": "node scripts/smoke/ensure-electron.cjs && xvfb-run -a electron --no-sandbox scripts/smoke/main.cjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",

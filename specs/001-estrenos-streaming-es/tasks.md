@@ -169,6 +169,12 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T183** Las consultas de arranque salen de `App.tsx` a un módulo compartido y probable *(FR-028, FR-057)* → `shared/view-queries.ts`
 - [x] **T184** Prueba de la costura: consulta de la sección → validación → filtrado *(FR-057)* → `unit/view-queries.test.ts`
 
+## Fase 18 — La integración continua llevaba tres versiones en rojo
+
+- [x] **T190** El flujo de comprobaciones deja de saltarse la descarga del binario de Electron *(NFR-013)* → `.github/workflows/checks.yml`
+- [x] **T191** Guardián con mensaje claro antes de la prueba de humo *(NFR-013)* → `scripts/smoke/ensure-electron.cjs`
+- [x] **T192** Documentado por qué el flujo del agente semanal sí puede saltársela *(NFR-002)*
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué
