@@ -12,6 +12,7 @@ import type { MediaType, Title } from '../../shared/types';
 import { mapTitle, type TmdbClient, type TmdbDiscoverResult } from '../providers/tmdb';
 import type { OmdbClient } from '../providers/omdb';
 import { rankTitles, type RankedTitle } from '../domain/ranking';
+import { isAnimation, TMDB_ANIMATION_GENRE_ID } from '../domain/genres';
 import { mergeRatings } from './stages/rate';
 import { DEFAULT_STAGE_CONCURRENCY, mapWithConcurrency, progressCounter } from './concurrency';
 import { describeError } from './report';
@@ -37,6 +38,8 @@ export interface TopYearOptions {
   candidatePages?: number;
   /** Fuentes mínimas de las tres para entrar en la lista. */
   minSources?: number;
+  /** Dejar fuera la animación (FR-059). */
+  excludeAnimation?: boolean;
 }
 
 export interface TopYearResult {
@@ -70,6 +73,9 @@ export async function collectTopOfYear(
         year: options.year,
         providerIds: options.providerIds,
         minVotes,
+        // Por identificador y no por nombre: el catálogo llega traducido y
+        // «Animación» dejaría de acertar con otro idioma (FR-059).
+        ...(options.excludeAnimation ? { excludeGenreIds: [TMDB_ANIMATION_GENRE_ID] } : {}),
         page,
       });
       candidates.push(...result.results);
@@ -96,7 +102,12 @@ export async function collectTopOfYear(
     }
   });
 
-  const titles = mapped.filter((title): title is Title => title !== null);
+  const titles = mapped
+    .filter((title): title is Title => title !== null)
+    // Cinturón y tirantes: TMDB ya excluye por género, pero un título con el
+    // género mal puesto en la fuente no puede colarse en una lista que el
+    // usuario pidió sin animación.
+    .filter((title) => !(options.excludeAnimation && isAnimation(title.genres)));
 
   // --- Notas de crítica -----------------------------------------------------
   if (deps.omdb) {

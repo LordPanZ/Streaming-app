@@ -164,6 +164,9 @@ export function parseCatalogQuery(input: unknown): CatalogQuery {
   const includeUnrated = optionalBoolean(raw.includeUnrated, 'La inclusión de los no puntuados');
   if (includeUnrated !== undefined) query.includeUnrated = includeUnrated;
 
+  const excludeAnimation = optionalBoolean(raw.excludeAnimation, 'La exclusión de la animación');
+  if (excludeAnimation !== undefined) query.excludeAnimation = excludeAnimation;
+
   const status = oneOf(raw.status, STATUSES, 'El estado');
   if (status !== undefined) query.status = status;
 

@@ -57,6 +57,9 @@ async function build(options: { conOmdb?: boolean } = {}) {
         id,
         title: `Película ${id}`,
         vote_average: 6,
+        // El 503 llega marcado como animación aunque TMDB no debería haberlo
+        // devuelto: sirve para probar la red de seguridad.
+        genres: id === 503 ? [{ id: 16, name: 'Animación' }] : [{ id: 18, name: 'Drama' }],
         external_ids: { imdb_id: `tt0000${id}` },
       });
     }
@@ -126,6 +129,42 @@ describe('collectTopOfYear (FR-058)', () => {
     // Solo queda la nota de TMDB: una fuente no llega al mínimo de dos.
     expect(result.ranked).toEqual([]);
     expect(result.withoutEnoughSources).toBe(3);
+  });
+
+  it('pide a TMDB que excluya la animación, por identificador (FR-059)', async () => {
+    const world = await build();
+    await collectTopOfYear(
+      { tmdb: world.tmdb, omdb: world.omdb, now: () => NOW },
+      { year: 2024, mediaType: 'movie', providerIds: [8], excludeAnimation: true },
+    );
+
+    const discover = world.requests.find((url) => url.includes('/discover/movie')) ?? '';
+    // Por número, no por nombre: el catálogo llega traducido.
+    expect(discover).toContain('without_genres=16');
+  });
+
+  it('descarta la animación que se cuele pese al filtro de TMDB (FR-059)', async () => {
+    const world = await build();
+    const result = await collectTopOfYear(
+      { tmdb: world.tmdb, omdb: world.omdb, now: () => NOW },
+      { year: 2024, mediaType: 'movie', providerIds: [8], excludeAnimation: true },
+    );
+
+    // La 503 viene marcada como animación en su ficha: no puede entrar.
+    expect(result.ranked.map((entry) => entry.title.title)).not.toContain('Película 503');
+    expect(result.ranked.map((entry) => entry.title.title)).toEqual([
+      'Película 501',
+      'Película 502',
+    ]);
+  });
+
+  it('sin pedirlo, la animación entra como cualquier otra', async () => {
+    const world = await build();
+    const result = await collectTopOfYear(
+      { tmdb: world.tmdb, omdb: world.omdb, now: () => NOW },
+      { year: 2024, mediaType: 'movie', providerIds: [8] },
+    );
+    expect(result.ranked.map((entry) => entry.title.title)).toContain('Película 503');
   });
 
   it('la lista sale con el formato pedido', async () => {

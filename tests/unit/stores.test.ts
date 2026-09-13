@@ -483,26 +483,35 @@ describe('sanitizeSettings', () => {
   });
 
   describe('listón de calidad (FR-053)', () => {
-    it('viene apagado de fábrica: la primera vez se ve lo que hay', () => {
-      expect(base.quality).toEqual({ minCritic: 0, includeUnrated: true });
+    it('el listón viene apagado y la animación excluida, de fábrica', () => {
+      expect(base.quality).toEqual({
+        minCritic: 0,
+        includeUnrated: true,
+        // Excluida de fábrica: es lo que se pidió (FR-059).
+        excludeAnimation: true,
+      });
     });
 
     it('recorta la nota al rango 0-10 con un decimal', () => {
-      expect(sanitizeSettings({ quality: { minCritic: 99, includeUnrated: true } }, base).quality
+      expect(sanitizeSettings({ quality: { minCritic: 99, includeUnrated: true, excludeAnimation: false } }, base).quality
         .minCritic).toBe(10);
-      expect(sanitizeSettings({ quality: { minCritic: -3, includeUnrated: true } }, base).quality
+      expect(sanitizeSettings({ quality: { minCritic: -3, includeUnrated: true, excludeAnimation: false } }, base).quality
         .minCritic).toBe(0);
-      expect(sanitizeSettings({ quality: { minCritic: 7.46, includeUnrated: true } }, base).quality
+      expect(sanitizeSettings({ quality: { minCritic: 7.46, includeUnrated: true, excludeAnimation: false } }, base).quality
         .minCritic).toBe(7.5);
     });
 
     it('ante basura conserva el valor anterior en vez de reiniciarlo', () => {
-      const previous = { ...base, quality: { minCritic: 8, includeUnrated: false } };
+      const previous = { ...base, quality: { minCritic: 8, includeUnrated: false, excludeAnimation: true } };
       const result = sanitizeSettings(
         { quality: { minCritic: 'mucho', includeUnrated: 'sí' } as never },
         previous,
       );
-      expect(result.quality).toEqual({ minCritic: 8, includeUnrated: false });
+      expect(result.quality).toEqual({
+        minCritic: 8,
+        includeUnrated: false,
+        excludeAnimation: true,
+      });
     });
 
     it('unos ajustes guardados sin listón migran al valor por defecto', () => {

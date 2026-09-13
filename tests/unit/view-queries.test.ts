@@ -13,7 +13,7 @@
 import { describe, expect, it } from 'vitest';
 import { INTERESTED_QUERY, VIEW_QUERIES } from '../../src/shared/view-queries';
 import { parseCatalogQuery } from '../../src/shared/validate';
-import { applyQualityFloor, filterViews } from '../../src/core/domain/filters';
+import { applyCatalogDefaults, filterViews } from '../../src/core/domain/filters';
 import { aggregateCritic, personalScore } from '../../src/core/domain/scoring';
 import { defaultCriteria } from '../../src/core/domain/criteria';
 import type { TitleView, UserRating } from '../../src/shared/types';
@@ -74,9 +74,10 @@ describe('la sección «Me interesa» de punta a punta (FR-057)', () => {
   it('el listón de calidad no la toca, ni siquiera uno muy alto', () => {
     // `minCritic: 0` viaja en la consulta justo para esto: lo que el usuario
     // apuntó a mano no lo puede esconder un ajuste.
-    const parsed = applyQualityFloor(parseCatalogQuery(INTERESTED_QUERY), {
+    const parsed = applyCatalogDefaults(parseCatalogQuery(INTERESTED_QUERY), {
       minCritic: 9,
       includeUnrated: false,
+      excludeAnimation: true,
     });
     expect(filterViews(todos, parsed).map((v) => v.title.id)).toEqual(['marcada']);
   });

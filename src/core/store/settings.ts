@@ -28,7 +28,11 @@ export function defaultSettings(): Settings {
     cacheTtlHours: 168,
     // Listón de calidad apagado por defecto (FR-053): la primera vez conviene
     // ver lo que hay antes de decidir dónde ponerlo.
-    quality: { minCritic: 0, includeUnrated: true },
+    //
+    // La animación sí viene excluida (FR-059): es lo que se pidió, y quien la
+    // quiera la recupera con una casilla. Quien actualice desde una versión
+    // anterior hereda este valor, que es justo el objetivo.
+    quality: { minCritic: 0, includeUnrated: true, excludeAnimation: true },
   };
 }
 
@@ -131,6 +135,10 @@ function sanitizeQuality(
     minCritic,
     includeUnrated:
       typeof source.includeUnrated === 'boolean' ? source.includeUnrated : fallback.includeUnrated,
+    excludeAnimation:
+      typeof source.excludeAnimation === 'boolean'
+        ? source.excludeAnimation
+        : fallback.excludeAnimation,
   };
 }
 

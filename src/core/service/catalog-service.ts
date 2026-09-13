@@ -82,7 +82,7 @@ export class CatalogService {
 
   facets(
     now: Date = new Date(),
-    floor?: { minCritic: number; includeUnrated: boolean },
+    floor?: { minCritic: number; includeUnrated: boolean; excludeAnimation?: boolean },
   ): CatalogFacets {
     const views = this.catalog.all().map((title) => this.buildView(title));
     return buildFacets(views, currentWeek(now), floor);

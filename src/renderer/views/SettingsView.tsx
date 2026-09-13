@@ -379,6 +379,25 @@ function QualitySection({
         nadie ha visto aún. Si lo desactivas, el catálogo será más corto y verás los estrenos con
         una semana o dos de retraso, cuando ya tengan nota.
       </p>
+
+      <label className="toggle" style={{ marginTop: 16 }}>
+        <input
+          type="checkbox"
+          checked={settings.quality.excludeAnimation}
+          onChange={(event) =>
+            void onUpdate({
+              quality: { ...settings.quality, excludeAnimation: event.target.checked },
+            })
+          }
+        />
+        Dejar fuera la animación
+      </label>
+      <p className="field__hint" style={{ marginTop: 6 }}>
+        Se aplica al catálogo y a «Lo mejor». Ojo: aquí entra también el anime, así que
+        Crunchyroll se quedará prácticamente vacío. Lo ya recopilado no se borra —vuelve a
+        aparecer si desmarcas esto— y lo que tengas apuntado en «Me interesa» se sigue viendo,
+        porque lo marcaste tú.
+      </p>
     </section>
   );
 }

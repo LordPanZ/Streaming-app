@@ -16,6 +16,7 @@ import type {
 } from '../../shared/types';
 import { platformName } from './platforms';
 import { normalizeText } from './text';
+import { isAnimation } from './genres';
 
 export const MAX_PAGE_SIZE = 200;
 export const DEFAULT_PAGE_SIZE = 60;
@@ -95,20 +96,31 @@ export function matchesMinCritic(
 }
 
 /**
- * Aplica el listón de calidad guardado a una consulta que no trae uno propio
- * (FR-053).
+ * Aplica a una consulta las preferencias guardadas que ella no trae propias
+ * (FR-053, FR-059).
  *
- * El criterio es la **ausencia**, no el valor: si el usuario elige «cualquier
- * nota» en la barra de filtros, eso llega como `0` y manda sobre los ajustes.
- * Solo cuando no ha elegido nada se hereda el listón guardado.
+ * El criterio es siempre la **ausencia**, no el valor: si el usuario elige
+ * «cualquier nota» en la barra de filtros, eso llega como `0` y manda sobre los
+ * ajustes. Solo cuando no ha elegido nada se hereda lo guardado. Lo mismo con
+ * la animación: un `false` explícito —el de la sección «Me interesa», por
+ * ejemplo— no lo puede pisar el ajuste.
  */
-export function applyQualityFloor(
+export function applyCatalogDefaults(
   query: CatalogQuery,
-  quality: { minCritic: number; includeUnrated: boolean },
+  quality: { minCritic: number; includeUnrated: boolean; excludeAnimation: boolean },
 ): CatalogQuery {
-  if (query.minCritic !== undefined) return query;
-  if (quality.minCritic <= 0) return query;
-  return { ...query, minCritic: quality.minCritic, includeUnrated: quality.includeUnrated };
+  const result: CatalogQuery = { ...query };
+
+  if (result.minCritic === undefined && quality.minCritic > 0) {
+    result.minCritic = quality.minCritic;
+    result.includeUnrated = quality.includeUnrated;
+  }
+
+  if (result.excludeAnimation === undefined && quality.excludeAnimation) {
+    result.excludeAnimation = true;
+  }
+
+  return result;
 }
 
 export function filterViews(
@@ -126,6 +138,7 @@ export function filterViews(
     if (genres && !view.title.genres.some((g) => genres.has(g))) return false;
     if (platforms && !view.title.platforms.some((p) => platforms.has(p.id))) return false;
     if (!matchesMinCritic(view, query.minCritic, query.includeUnrated ?? false)) return false;
+    if (query.excludeAnimation === true && isAnimation(view.title.genres)) return false;
     if (!matchesStatus(view, status)) return false;
     if (!matchesText(view, text)) return false;
     return true;
@@ -214,7 +227,7 @@ export function paginate<T>(
 export function buildFacets(
   views: readonly TitleView[],
   currentWeekValue: string,
-  floor?: { minCritic: number; includeUnrated: boolean },
+  floor?: { minCritic: number; includeUnrated: boolean; excludeAnimation?: boolean },
 ): CatalogFacets {
   const genres = new Map<string, number>();
   const platforms = new Map<string, number>();
@@ -222,7 +235,11 @@ export function buildFacets(
 
   const all = views;
   const visible = floor
-    ? views.filter((view) => matchesMinCritic(view, floor.minCritic, floor.includeUnrated))
+    ? views.filter(
+        (view) =>
+          matchesMinCritic(view, floor.minCritic, floor.includeUnrated) &&
+          !(floor.excludeAnimation === true && isAnimation(view.title.genres)),
+      )
     : views;
 
   for (const view of visible) {

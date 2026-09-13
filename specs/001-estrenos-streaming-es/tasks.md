@@ -185,6 +185,15 @@ Leyenda: `[x]` hecha · `[ ]` pendiente
 - [x] **T205** Aviso del gasto de cuota diaria de OMDb antes de consultar *(FR-058, Art. V)*
 - [x] **T206** `--ranking 2023,2024,2025` en el modo consola *(FR-010, FR-058)*
 
+## Fase 20 — Sin animación (v1.6.0)
+
+- [x] **T210** Reconocimiento del género, por identificador al consultar y por nombre al filtrar *(FR-059)* → `core/domain/genres.ts`
+- [x] **T211** Ajuste guardado que afecta al catálogo, a las facetas y a «Lo mejor» *(FR-059)*
+- [x] **T212** Exclusión en la propia consulta a TMDB con `without_genres` *(FR-059, Art. V)*
+- [x] **T213** Red de seguridad para el título con el género mal puesto en la fuente *(FR-059)*
+- [x] **T214** «Me interesa» sigue enseñando lo apuntado a mano, sea animación o no *(FR-057, FR-059)*
+- [x] **T215** `--sin-animacion` en el modo consola *(FR-010, FR-059)*
+
 ## Pendiente (declarado, no dado por hecho)
 
 Estas tareas están abiertas a propósito. `traceability.md` §4 explica qué

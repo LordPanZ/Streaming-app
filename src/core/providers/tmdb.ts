@@ -100,6 +100,8 @@ export interface TopRatedParams {
    * y un 10 de media.
    */
   minVotes: number;
+  /** Géneros a dejar fuera, por identificador de TMDB (FR-059). */
+  excludeGenreIds?: readonly number[];
   page?: number;
 }
 
@@ -194,6 +196,9 @@ export class TmdbClient {
       with_watch_monetization_types: 'flatrate',
       [yearField]: String(params.year),
       'vote_count.gte': String(params.minVotes),
+      ...(params.excludeGenreIds?.length
+        ? { without_genres: params.excludeGenreIds.join(',') }
+        : {}),
       sort_by: 'vote_average.desc',
       include_adult: 'false',
       page: String(params.page ?? 1),

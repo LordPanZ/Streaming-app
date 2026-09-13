@@ -33,14 +33,15 @@ export const CATALOG_QUERY: CatalogQuery = {
 /**
  * Sección «Me interesa» (FR-057).
  *
- * `minCritic: 0` no es un descuido: el listón de calidad (FR-053) no puede
- * esconder algo que el usuario ha apuntado a mano. Si lo marcó, lo quiere ver,
- * tenga la nota que tenga.
+ * `minCritic: 0` y `excludeAnimation: false` no son descuidos: ningún ajuste
+ * puede esconder algo que el usuario ha apuntado a mano. Si lo marcó, lo quiere
+ * ver, tenga la nota que tenga y sea animación o no.
  */
 export const INTERESTED_QUERY: CatalogQuery = {
   week: 'all',
   status: 'interested',
   minCritic: 0,
+  excludeAnimation: false,
   sort: 'date',
   order: 'desc',
   limit: 60,

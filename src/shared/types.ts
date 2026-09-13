@@ -252,6 +252,11 @@ export interface QualitySettings {
    * y la recopilación de la semana siguiente ya decide con la nota en la mano.
    */
   includeUnrated: boolean;
+  /**
+   * Dejar fuera la animación (FR-059). Afecta al catálogo y a la clasificación
+   * por año; no borra nada de lo ya recopilado, solo deja de enseñarlo.
+   */
+  excludeAnimation: boolean;
 }
 
 export interface Settings {
@@ -287,6 +292,8 @@ export interface CatalogQuery {
    * efecto junto a `minCritic`. Ausente = lo que digan los ajustes.
    */
   includeUnrated?: boolean;
+  /** Dejar fuera la animación (FR-059). Ausente = lo que digan los ajustes. */
+  excludeAnimation?: boolean;
   status?: WatchStatusFilter;
   sort?: SortField;
   order?: SortOrder;

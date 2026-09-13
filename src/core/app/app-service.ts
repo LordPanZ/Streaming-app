@@ -41,7 +41,7 @@ import {
   parseVerifySecret,
   ValidationError,
 } from '../../shared/validate';
-import { applyQualityFloor } from '../domain/filters';
+import { applyCatalogDefaults } from '../domain/filters';
 import { collectTopOfYear } from '../agent/top-year';
 import type { RankedTitle } from '../domain/ranking';
 import { resolvePlatforms, PLATFORMS } from '../domain/platforms';
@@ -105,7 +105,7 @@ export class AppService {
   // --- Catálogo ------------------------------------------------------------
 
   catalogQuery(input: unknown): CatalogPage {
-    const query = applyQualityFloor(
+    const query = applyCatalogDefaults(
       parseCatalogQuery(input),
       this.container.settings.get().quality,
     );
@@ -118,10 +118,11 @@ export class AppService {
   }
 
   catalogFacets(): CatalogFacets {
-    const { minCritic, includeUnrated } = this.container.settings.get().quality;
+    const { minCritic, includeUnrated, excludeAnimation } = this.container.settings.get().quality;
+    const filters = minCritic > 0 || excludeAnimation;
     return this.container.service.facets(
       undefined,
-      minCritic > 0 ? { minCritic, includeUnrated } : undefined,
+      filters ? { minCritic, includeUnrated, excludeAnimation } : undefined,
     );
   }
 
@@ -165,6 +166,7 @@ export class AppService {
       year: parsed.year,
       providerIds,
       limit: parsed.limit ?? 10,
+      excludeAnimation: settings.quality.excludeAnimation,
       // Dos páginas son 40 candidatos por lista. Subirlo mejora poco la cabeza
       // de la lista y multiplica el gasto de cuota de OMDb, que es diaria.
       candidatePages: 2,

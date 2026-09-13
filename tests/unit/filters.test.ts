@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  applyQualityFloor,
+  applyCatalogDefaults,
   buildFacets,
   compareViews,
   filterViews,
@@ -147,11 +147,11 @@ describe('matchesMinCritic (FR-029, FR-014)', () => {
   });
 });
 
-describe('applyQualityFloor (FR-053)', () => {
-  const quality = { minCritic: 7, includeUnrated: true };
+describe('applyCatalogDefaults (FR-053, FR-059)', () => {
+  const quality = { minCritic: 7, includeUnrated: true, excludeAnimation: false };
 
   it('aplica el listón guardado cuando la consulta no pide nota mínima', () => {
-    expect(applyQualityFloor({ week: 'current' }, quality)).toEqual({
+    expect(applyCatalogDefaults({ week: 'current' }, quality)).toEqual({
       week: 'current',
       minCritic: 7,
       includeUnrated: true,
@@ -161,22 +161,59 @@ describe('applyQualityFloor (FR-053)', () => {
   it('un cero explícito del usuario manda sobre los ajustes', () => {
     // «Cualquier nota» en la barra de filtros no puede acabar reaplicando el
     // listón: sería ignorar lo que acaba de pedir.
-    expect(applyQualityFloor({ minCritic: 0 }, quality)).toEqual({ minCritic: 0 });
+    expect(applyCatalogDefaults({ minCritic: 0 }, quality)).toEqual({ minCritic: 0 });
   });
 
   it('una nota mínima explícita tampoco se pisa', () => {
-    expect(applyQualityFloor({ minCritic: 9 }, quality)).toEqual({ minCritic: 9 });
+    expect(applyCatalogDefaults({ minCritic: 9 }, quality)).toEqual({ minCritic: 9 });
   });
 
   it('sin listón guardado, la consulta sale intacta', () => {
     const query = { week: 'all' };
-    expect(applyQualityFloor(query, { minCritic: 0, includeUnrated: true })).toEqual(query);
+    const sinPreferencias = { minCritic: 0, includeUnrated: true, excludeAnimation: false };
+    expect(applyCatalogDefaults(query, sinPreferencias)).toEqual(query);
   });
 
   it('no muta la consulta recibida', () => {
     const query = { week: 'current' };
-    applyQualityFloor(query, quality);
+    applyCatalogDefaults(query, quality);
     expect(query).toEqual({ week: 'current' });
+  });
+});
+
+describe('exclusión de la animación (FR-059)', () => {
+  const dibujos = view({ id: 'dibujos', genres: ['Animación', 'Familia'] });
+  const imagenReal = view({ id: 'real', genres: ['Drama'] });
+  const anime = view({ id: 'anime', genres: ['Animation', 'Acción'] });
+  const todos = [dibujos, imagenReal, anime];
+
+  it('deja fuera la animación cuando se pide', () => {
+    const visibles = filterViews(todos, { excludeAnimation: true });
+    expect(visibles.map((v) => v.title.id)).toEqual(['real']);
+  });
+
+  it('sin pedirlo no filtra nada', () => {
+    expect(filterViews(todos, {}).map((v) => v.title.id)).toEqual(['dibujos', 'real', 'anime']);
+    expect(filterViews(todos, { excludeAnimation: false })).toHaveLength(3);
+  });
+
+  it('el ajuste guardado se hereda, pero un «false» explícito manda', () => {
+    // Es el caso de la sección «Me interesa»: lo apuntado a mano se ve aunque
+    // sea animación.
+    const ajustes = { minCritic: 0, includeUnrated: true, excludeAnimation: true };
+    expect(applyCatalogDefaults({}, ajustes).excludeAnimation).toBe(true);
+    expect(applyCatalogDefaults({ excludeAnimation: false }, ajustes).excludeAnimation).toBe(false);
+  });
+
+  it('los recuentos de la barra también la descuentan', () => {
+    const facets = buildFacets(todos, '2026-W37', {
+      minCritic: 0,
+      includeUnrated: true,
+      excludeAnimation: true,
+    });
+    expect(facets.totalTitles).toBe(3);
+    expect(facets.visibleTitles).toBe(1);
+    expect(facets.belowFloor).toBe(2);
   });
 });
 
@@ -249,9 +286,9 @@ describe('matchesStatus con «me interesa» (FR-054)', () => {
       makeUserRating({ titleId: 'floja', watched: false, interested: true }),
     );
 
-    const conListón = applyQualityFloor(
+    const conListón = applyCatalogDefaults(
       { status: 'interested', minCritic: 0 },
-      { minCritic: 8, includeUnrated: false },
+      { minCritic: 8, includeUnrated: false, excludeAnimation: false },
     );
     expect(filterViews([floja], conListón).map((v) => v.title.id)).toEqual(['floja']);
   });

@@ -27,6 +27,7 @@ interface CliOptions {
   rankingYears: number[];
   rankingLimit: number;
   rankingMinVotes?: number;
+  rankingNoAnimation: boolean;
 }
 
 const HELP = `
@@ -41,6 +42,7 @@ Opciones
   --top <n>                Cuántos títulos por lista (por defecto 10)
   --min-votes <n>          Votos mínimos en TMDB para entrar (por defecto 300
                            en películas, 150 en series)
+  --sin-animacion          Deja fuera las películas y series de animación
   --lookback-days <n>      Días hacia atrás que se consultan (por defecto, los ajustes)
   --grace-days <n>         Margen para altas tardías del catálogo
   --platforms a,b,c        Solo estas plataformas (identificadores internos)
@@ -64,6 +66,7 @@ export function parseArgs(argv: readonly string[]): CliOptions {
     help: false,
     rankingYears: [],
     rankingLimit: 10,
+    rankingNoAnimation: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -103,6 +106,9 @@ export function parseArgs(argv: readonly string[]): CliOptions {
       case '--min-votes':
         if (next && Number(next) >= 0) options.rankingMinVotes = Math.floor(Number(next));
         i += 1;
+        break;
+      case '--sin-animacion':
+        options.rankingNoAnimation = true;
         break;
       case '--dry-run':
         options.dryRun = true;
@@ -254,6 +260,7 @@ async function runRanking(container: AppContainer, options: CliOptions): Promise
           mediaType,
           providerIds,
           limit: options.rankingLimit,
+          excludeAnimation: options.rankingNoAnimation || settings.quality.excludeAnimation,
           ...(options.rankingMinVotes !== undefined ? { minVotes: options.rankingMinVotes } : {}),
         },
       );

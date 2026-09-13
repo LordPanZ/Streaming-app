@@ -460,6 +460,29 @@ distintos y cada pantalla dice cuál está enseñando.
 - *Criterio:* Dado el coste en cuota diaria de OMDb, cuando se va a consultar,
   entonces se advierte antes de gastar.
 
+**FR-059 — Dejar fuera la animación.**
+El usuario puede excluir las películas y series de animación. El ajuste se
+guarda y afecta tanto al catálogo como a la clasificación por año (FR-058).
+Viene activado de fábrica.
+
+Lo excluido **no se borra**: sigue en el almacén y vuelve a aparecer al
+desmarcar el ajuste, igual que con el listón de calidad (FR-053).
+
+- *Criterio:* Dado el ajuste activo, cuando se mira el catálogo, entonces no
+  aparece ningún título de animación y los recuentos de la barra de filtros lo
+  reflejan.
+- *Criterio:* Dado el ajuste activo, cuando se consulta la clasificación de un
+  año, entonces se excluye **en la propia consulta a TMDB** y por identificador
+  de género, no por el nombre traducido.
+- *Criterio:* Dado un título de animación marcado como «me interesa», cuando se
+  abre esa sección, entonces se ve: lo que el usuario apuntó a mano no lo
+  esconde un ajuste.
+- *Criterio:* Dado un título cuyo género viene mal puesto en la fuente, cuando
+  llega a una lista pedida sin animación, entonces se descarta igualmente: el
+  filtro de la fuente no es la única defensa.
+- *Criterio:* Dados unos ajustes guardados por una versión anterior, sin este
+  campo, cuando se cargan, entonces se adopta el valor de fábrica.
+
 ### 5.9 Android
 
 **FR-043 — Aplicación para Android.**
